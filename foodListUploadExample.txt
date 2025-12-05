@@ -1,0 +1,30 @@
+{
+    "city": "istanbul",
+    "year": 2024,
+    "month": 12,
+    "menus": [
+      {
+        "day": 1,
+        "breakfast": {
+          "items": ["Beyaz Peynir", "Siyah Zeytin", "Domates", "Salatalık", "Tereyağı", "Bal", "Çay"],
+          "calories": 450
+        },
+        "dinner": {
+          "items": ["Mercimek Çorbası ", "Pirinç Pilavı", "Tavuk Sote", "Cacık", "Ekmek"],
+          "calories": 920
+        }
+      },
+      {
+        "day": 2,
+        "breakfast": {
+          "items": ["Kaşar Peyniri", "Yeşil Zeytin", "Haşlanmış Yumurta", "Reçel", "Çay"],
+          "calories": 480
+        },
+        "dinner": {
+          "items": ["Ezogelin Çorbası", "Bulgur Pilavı", "Kuru Fasulye", "Turşu", "Ayran"],
+          "calories": 880
+        }
+      }
+      // ... diğer günler
+    ]
+  }

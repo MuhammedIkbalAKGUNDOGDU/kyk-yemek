@@ -1,0 +1,349 @@
+{
+  "city": "istanbul",
+  "year": 2024,
+  "month": 12,
+  "menus": [
+    {
+      "day": 1,
+      "breakfast": {
+        "items": ["Beyaz Peynir", "Zeytin", "Domates", "Salatalık", "Bal", "Tereyağı", "Çay"],
+        "calories": 450
+      },
+      "dinner": {
+        "items": ["Mercimek Çorbası", "Kuru Fasulye", "Pilav", "Cacık", "Ekmek"],
+        "calories": 850
+      }
+    },
+    {
+      "day": 2,
+      "breakfast": {
+        "items": ["Kaşar Peyniri", "Zeytin", "Domates", "Salatalık", "Reçel", "Tereyağı", "Çay"],
+        "calories": 480
+      },
+      "dinner": {
+        "items": ["Ezogelin Çorbası", "Etli Nohut", "Bulgur Pilavı", "Ayran", "Ekmek"],
+        "calories": 900
+      }
+    },
+    {
+      "day": 3,
+      "breakfast": {
+        "items": ["Beyaz Peynir", "Siyah Zeytin", "Domates", "Biber", "Bal", "Tereyağı", "Çay"],
+        "calories": 460
+      },
+      "dinner": {
+        "items": ["Tarhana Çorbası", "Tavuk Sote", "Makarna", "Yoğurt", "Ekmek"],
+        "calories": 820
+      }
+    },
+    {
+      "day": 4,
+      "breakfast": {
+        "items": ["Kaşar Peyniri", "Yeşil Zeytin", "Domates", "Salatalık", "Pekmez", "Tereyağı", "Çay"],
+        "calories": 470
+      },
+      "dinner": {
+        "items": ["Yayla Çorbası", "Kıymalı Bezelye", "Pilav", "Cacık", "Ekmek"],
+        "calories": 780
+      }
+    },
+    {
+      "day": 5,
+      "breakfast": {
+        "items": ["Lor Peyniri", "Zeytin", "Domates", "Salatalık", "Bal", "Tereyağı", "Süt"],
+        "calories": 440
+      },
+      "dinner": {
+        "items": ["Mercimek Çorbası", "Etli Kapuska", "Bulgur Pilavı", "Turşu", "Ekmek"],
+        "calories": 870
+      }
+    },
+    {
+      "day": 6,
+      "breakfast": {
+        "items": ["Beyaz Peynir", "Zeytin", "Domates", "Biber", "Reçel", "Tereyağı", "Çay"],
+        "calories": 455
+      },
+      "dinner": {
+        "items": ["Domates Çorbası", "Izgar Köfte", "Patates Püresi", "Salata", "Ekmek"],
+        "calories": 920
+      }
+    },
+    {
+      "day": 7,
+      "breakfast": {
+        "items": ["Kaşar Peyniri", "Siyah Zeytin", "Domates", "Salatalık", "Bal", "Tereyağı", "Çay"],
+        "calories": 475
+      },
+      "dinner": {
+        "items": ["Şehriye Çorbası", "Karnıyarık", "Pilav", "Yoğurt", "Ekmek"],
+        "calories": 950
+      }
+    },
+    {
+      "day": 8,
+      "breakfast": {
+        "items": ["Beyaz Peynir", "Yeşil Zeytin", "Domates", "Salatalık", "Pekmez", "Tereyağı", "Çay"],
+        "calories": 460
+      },
+      "dinner": {
+        "items": ["Ezogelin Çorbası", "Tas Kebabı", "Bulgur Pilavı", "Cacık", "Ekmek"],
+        "calories": 880
+      }
+    },
+    {
+      "day": 9,
+      "breakfast": {
+        "items": ["Lor Peyniri", "Zeytin", "Domates", "Biber", "Bal", "Tereyağı", "Süt"],
+        "calories": 445
+      },
+      "dinner": {
+        "items": ["Mercimek Çorbası", "Etli Taze Fasulye", "Pilav", "Ayran", "Ekmek"],
+        "calories": 840
+      }
+    },
+    {
+      "day": 10,
+      "breakfast": {
+        "items": ["Beyaz Peynir", "Siyah Zeytin", "Domates", "Salatalık", "Reçel", "Tereyağı", "Çay"],
+        "calories": 465
+      },
+      "dinner": {
+        "items": ["Tarhana Çorbası", "Sebzeli Tavuk", "Makarna", "Turşu", "Ekmek"],
+        "calories": 810
+      }
+    },
+    {
+      "day": 11,
+      "breakfast": {
+        "items": ["Kaşar Peyniri", "Zeytin", "Domates", "Biber", "Bal", "Tereyağı", "Çay"],
+        "calories": 480
+      },
+      "dinner": {
+        "items": ["Yayla Çorbası", "Kuru Fasulye", "Bulgur Pilavı", "Cacık", "Ekmek"],
+        "calories": 860
+      }
+    },
+    {
+      "day": 12,
+      "breakfast": {
+        "items": ["Beyaz Peynir", "Yeşil Zeytin", "Domates", "Salatalık", "Pekmez", "Tereyağı", "Süt"],
+        "calories": 450
+      },
+      "dinner": {
+        "items": ["Mercimek Çorbası", "Etli Pırasa", "Pilav", "Yoğurt", "Ekmek"],
+        "calories": 790
+      }
+    },
+    {
+      "day": 13,
+      "breakfast": {
+        "items": ["Lor Peyniri", "Zeytin", "Domates", "Biber", "Reçel", "Tereyağı", "Çay"],
+        "calories": 440
+      },
+      "dinner": {
+        "items": ["Domates Çorbası", "Tavuk Şnitzel", "Patates Kızartması", "Salata", "Ekmek"],
+        "calories": 960
+      }
+    },
+    {
+      "day": 14,
+      "breakfast": {
+        "items": ["Beyaz Peynir", "Siyah Zeytin", "Domates", "Salatalık", "Bal", "Tereyağı", "Çay"],
+        "calories": 455
+      },
+      "dinner": {
+        "items": ["Şehriye Çorbası", "İmam Bayıldı", "Bulgur Pilavı", "Cacık", "Ekmek"],
+        "calories": 830
+      }
+    },
+    {
+      "day": 15,
+      "breakfast": {
+        "items": ["Kaşar Peyniri", "Zeytin", "Domates", "Biber", "Pekmez", "Tereyağı", "Süt"],
+        "calories": 485
+      },
+      "dinner": {
+        "items": ["Ezogelin Çorbası", "Etli Nohut", "Pilav", "Ayran", "Ekmek"],
+        "calories": 890
+      }
+    },
+    {
+      "day": 16,
+      "breakfast": {
+        "items": ["Beyaz Peynir", "Yeşil Zeytin", "Domates", "Salatalık", "Bal", "Tereyağı", "Çay"],
+        "calories": 460
+      },
+      "dinner": {
+        "items": ["Mercimek Çorbası", "Kadınbudu Köfte", "Makarna", "Turşu", "Ekmek"],
+        "calories": 870
+      }
+    },
+    {
+      "day": 17,
+      "breakfast": {
+        "items": ["Lor Peyniri", "Zeytin", "Domates", "Biber", "Reçel", "Tereyağı", "Çay"],
+        "calories": 445
+      },
+      "dinner": {
+        "items": ["Tarhana Çorbası", "Kıymalı Ispanak", "Bulgur Pilavı", "Yoğurt", "Ekmek"],
+        "calories": 780
+      }
+    },
+    {
+      "day": 18,
+      "breakfast": {
+        "items": ["Beyaz Peynir", "Siyah Zeytin", "Domates", "Salatalık", "Bal", "Tereyağı", "Süt"],
+        "calories": 450
+      },
+      "dinner": {
+        "items": ["Yayla Çorbası", "Etli Bamya", "Pilav", "Cacık", "Ekmek"],
+        "calories": 820
+      }
+    },
+    {
+      "day": 19,
+      "breakfast": {
+        "items": ["Kaşar Peyniri", "Zeytin", "Domates", "Biber", "Pekmez", "Tereyağı", "Çay"],
+        "calories": 475
+      },
+      "dinner": {
+        "items": ["Mercimek Çorbası", "Tavuk Kavurma", "Makarna", "Salata", "Ekmek"],
+        "calories": 850
+      }
+    },
+    {
+      "day": 20,
+      "breakfast": {
+        "items": ["Beyaz Peynir", "Yeşil Zeytin", "Domates", "Salatalık", "Reçel", "Tereyağı", "Çay"],
+        "calories": 460
+      },
+      "dinner": {
+        "items": ["Domates Çorbası", "Kuru Fasulye", "Bulgur Pilavı", "Ayran", "Ekmek"],
+        "calories": 880
+      }
+    },
+    {
+      "day": 21,
+      "breakfast": {
+        "items": ["Lor Peyniri", "Zeytin", "Domates", "Biber", "Bal", "Tereyağı", "Süt"],
+        "calories": 440
+      },
+      "dinner": {
+        "items": ["Şehriye Çorbası", "Etli Patates", "Pilav", "Turşu", "Ekmek"],
+        "calories": 860
+      }
+    },
+    {
+      "day": 22,
+      "breakfast": {
+        "items": ["Beyaz Peynir", "Siyah Zeytin", "Domates", "Salatalık", "Pekmez", "Tereyağı", "Çay"],
+        "calories": 455
+      },
+      "dinner": {
+        "items": ["Ezogelin Çorbası", "Hünkar Beğendi", "Bulgur Pilavı", "Cacık", "Ekmek"],
+        "calories": 920
+      }
+    },
+    {
+      "day": 23,
+      "breakfast": {
+        "items": ["Kaşar Peyniri", "Zeytin", "Domates", "Biber", "Bal", "Tereyağı", "Çay"],
+        "calories": 480
+      },
+      "dinner": {
+        "items": ["Mercimek Çorbası", "Sebzeli Köfte", "Pilav", "Yoğurt", "Ekmek"],
+        "calories": 870
+      }
+    },
+    {
+      "day": 24,
+      "breakfast": {
+        "items": ["Beyaz Peynir", "Yeşil Zeytin", "Domates", "Salatalık", "Reçel", "Tereyağı", "Süt"],
+        "calories": 450
+      },
+      "dinner": {
+        "items": ["Tarhana Çorbası", "Etli Kereviz", "Bulgur Pilavı", "Salata", "Ekmek"],
+        "calories": 810
+      }
+    },
+    {
+      "day": 25,
+      "breakfast": {
+        "items": ["Lor Peyniri", "Zeytin", "Domates", "Biber", "Bal", "Tereyağı", "Çay"],
+        "calories": 445
+      },
+      "dinner": {
+        "items": ["Yayla Çorbası", "Tavuk Sote", "Makarna", "Cacık", "Ekmek"],
+        "calories": 840
+      }
+    },
+    {
+      "day": 26,
+      "breakfast": {
+        "items": ["Beyaz Peynir", "Siyah Zeytin", "Domates", "Salatalık", "Pekmez", "Tereyağı", "Çay"],
+        "calories": 460
+      },
+      "dinner": {
+        "items": ["Mercimek Çorbası", "Kıymalı Kabak", "Pilav", "Ayran", "Ekmek"],
+        "calories": 790
+      }
+    },
+    {
+      "day": 27,
+      "breakfast": {
+        "items": ["Kaşar Peyniri", "Zeytin", "Domates", "Biber", "Reçel", "Tereyağı", "Süt"],
+        "calories": 475
+      },
+      "dinner": {
+        "items": ["Domates Çorbası", "Etli Nohut", "Bulgur Pilavı", "Turşu", "Ekmek"],
+        "calories": 890
+      }
+    },
+    {
+      "day": 28,
+      "breakfast": {
+        "items": ["Beyaz Peynir", "Yeşil Zeytin", "Domates", "Salatalık", "Bal", "Tereyağı", "Çay"],
+        "calories": 455
+      },
+      "dinner": {
+        "items": ["Şehriye Çorbası", "Kuru Fasulye", "Pilav", "Yoğurt", "Ekmek"],
+        "calories": 860
+      }
+    },
+    {
+      "day": 29,
+      "breakfast": {
+        "items": ["Lor Peyniri", "Zeytin", "Domates", "Biber", "Pekmez", "Tereyağı", "Çay"],
+        "calories": 440
+      },
+      "dinner": {
+        "items": ["Ezogelin Çorbası", "Izgar Köfte", "Makarna", "Cacık", "Ekmek"],
+        "calories": 910
+      }
+    },
+    {
+      "day": 30,
+      "breakfast": {
+        "items": ["Beyaz Peynir", "Siyah Zeytin", "Domates", "Salatalık", "Bal", "Tereyağı", "Süt"],
+        "calories": 450
+      },
+      "dinner": {
+        "items": ["Mercimek Çorbası", "Etli Taze Fasulye", "Bulgur Pilavı", "Salata", "Ekmek"],
+        "calories": 850
+      }
+    },
+    {
+      "day": 31,
+      "breakfast": {
+        "items": ["Kaşar Peyniri", "Yeşil Zeytin", "Domates", "Biber", "Reçel", "Tereyağı", "Çay"],
+        "calories": 480
+      },
+      "dinner": {
+        "items": ["Tarhana Çorbası", "Yılbaşı Özel Hindi", "Pilav", "Turşu", "Tatlı", "Ekmek"],
+        "calories": 1100
+      }
+    }
+  ]
+}
+
