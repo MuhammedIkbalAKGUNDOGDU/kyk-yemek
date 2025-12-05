@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   User, 
@@ -13,20 +13,42 @@ import {
   ThumbsDown,
   Edit3,
   Trash2,
-  ChevronRight
+  ChevronRight,
+  X,
+  Check,
+  Mail
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
 import { AdBanner } from "@/components/AdBanner";
 import { useCity } from "@/hooks/useCity";
+import { cities } from "@/data/menus";
 import { cn } from "@/lib/utils";
 
+// Seçilebilir avatarlar
+const avatarOptions = [
+  { id: "avatar1", emoji: "😊", bg: "from-yellow-400 to-orange-500" },
+  { id: "avatar2", emoji: "🍕", bg: "from-red-400 to-pink-500" },
+  { id: "avatar3", emoji: "🍔", bg: "from-amber-400 to-orange-500" },
+  { id: "avatar4", emoji: "🍜", bg: "from-green-400 to-emerald-500" },
+  { id: "avatar5", emoji: "🍣", bg: "from-pink-400 to-rose-500" },
+  { id: "avatar6", emoji: "🥗", bg: "from-lime-400 to-green-500" },
+  { id: "avatar7", emoji: "🍰", bg: "from-purple-400 to-violet-500" },
+  { id: "avatar8", emoji: "☕", bg: "from-amber-600 to-yellow-700" },
+  { id: "avatar9", emoji: "🧑‍🍳", bg: "from-blue-400 to-cyan-500" },
+  { id: "avatar10", emoji: "🎓", bg: "from-indigo-400 to-purple-500" },
+  { id: "avatar11", emoji: "🏠", bg: "from-teal-400 to-emerald-500" },
+  { id: "avatar12", emoji: "⭐", bg: "from-yellow-400 to-amber-500" },
+];
+
 // Mock user data
-const mockUser = {
+const initialMockUser = {
   id: "user1",
   nickname: "yemeksever34",
   email: "yemeksever34@email.com",
-  city: "İstanbul",
+  city: "istanbul",
+  cityName: "İstanbul",
+  avatarId: "avatar4",
   joinDate: new Date(2024, 8, 15),
   stats: {
     comments: 24,
@@ -87,13 +109,6 @@ function formatDate(date: Date) {
   });
 }
 
-function formatTime(date: Date) {
-  return date.toLocaleTimeString("tr-TR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 function timeAgo(date: Date) {
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -107,9 +122,231 @@ function timeAgo(date: Date) {
   return formatDate(date);
 }
 
+// Profile Edit Modal Component
+function ProfileEditModal({
+  isOpen,
+  onClose,
+  user,
+  onSave,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  user: typeof initialMockUser;
+  onSave: (data: { nickname: string; email: string; city: string; avatarId: string }) => void;
+}) {
+  const [nickname, setNickname] = useState(user.nickname);
+  const [email, setEmail] = useState(user.email);
+  const [city, setCity] = useState(user.city);
+  const [avatarId, setAvatarId] = useState(user.avatarId);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setNickname(user.nickname);
+      setEmail(user.email);
+      setCity(user.city);
+      setAvatarId(user.avatarId);
+    }
+  }, [isOpen, user]);
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    if (isOpen) {
+      document.addEventListener("keydown", handleEsc);
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      document.removeEventListener("keydown", handleEsc);
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen, onClose]);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    onSave({ nickname, email, city, avatarId });
+    setIsSaving(false);
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  const selectedAvatar = avatarOptions.find((a) => a.id === avatarId) || avatarOptions[0];
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 p-4">
+        <div className="rounded-2xl bg-white shadow-2xl overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+            <h2 className="text-lg font-semibold text-gray-900">Profili Düzenle</h2>
+            <button
+              onClick={onClose}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+            {/* Avatar Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Profil Resmi Seçin
+              </label>
+              
+              {/* Current Avatar */}
+              <div className="flex justify-center mb-4">
+                <div className={cn(
+                  "flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br text-4xl shadow-lg ring-4 ring-green-200",
+                  selectedAvatar.bg
+                )}>
+                  {selectedAvatar.emoji}
+                </div>
+              </div>
+
+              {/* Avatar Grid */}
+              <div className="grid grid-cols-6 gap-3">
+                {avatarOptions.map((avatar) => (
+                  <button
+                    key={avatar.id}
+                    onClick={() => setAvatarId(avatar.id)}
+                    className={cn(
+                      "flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br text-2xl transition-all hover:scale-110",
+                      avatar.bg,
+                      avatarId === avatar.id 
+                        ? "ring-3 ring-green-500 ring-offset-2" 
+                        : "hover:ring-2 hover:ring-gray-300"
+                    )}
+                  >
+                    {avatar.emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Nickname */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Kullanıcı Adı
+              </label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={nickname}
+                  onChange={(e) => setNickname(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-12 pr-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 transition-all focus:bg-white focus:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-100"
+                  placeholder="Kullanıcı adınız"
+                />
+              </div>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                E-posta Adresi
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-12 pr-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 transition-all focus:bg-white focus:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-100"
+                  placeholder="ornek@email.com"
+                />
+              </div>
+            </div>
+
+            {/* City */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Şehir
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                <select
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-12 pr-4 py-3 text-sm text-gray-900 transition-all focus:bg-white focus:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-100 appearance-none cursor-pointer"
+                >
+                  {cities.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-end gap-3 border-t border-gray-100 px-6 py-4 bg-gray-50">
+            <button
+              onClick={onClose}
+              className="px-5 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-200 transition-colors"
+            >
+              İptal
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-green-500 text-sm font-medium text-white hover:bg-green-600 transition-colors disabled:bg-gray-300"
+            >
+              {isSaving ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Kaydediliyor...
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4" />
+                  Kaydet
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export default function ProfilePage() {
   const { selectedCity, selectedCityName, setSelectedCity, isLoaded } = useCity();
   const [activeTab, setActiveTab] = useState<"comments" | "settings">("comments");
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [mockUser, setMockUser] = useState(initialMockUser);
+
+  const handleSaveProfile = (data: { nickname: string; email: string; city: string; avatarId: string }) => {
+    const cityObj = cities.find((c) => c.id === data.city);
+    setMockUser({
+      ...mockUser,
+      nickname: data.nickname,
+      email: data.email,
+      city: data.city,
+      cityName: cityObj?.name || data.city,
+      avatarId: data.avatarId,
+    });
+  };
+
+  const currentAvatar = avatarOptions.find((a) => a.id === mockUser.avatarId) || avatarOptions[0];
 
   // Don't render until localStorage is loaded
   if (!isLoaded) {
@@ -145,8 +382,11 @@ export default function ProfilePage() {
             <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
                 {/* Avatar */}
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-green-400 to-emerald-500 text-3xl font-bold text-white shadow-lg">
-                  {mockUser.nickname.charAt(0).toUpperCase()}
+                <div className={cn(
+                  "flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br text-4xl shadow-lg",
+                  currentAvatar.bg
+                )}>
+                  {currentAvatar.emoji}
                 </div>
 
                 {/* User Info */}
@@ -157,7 +397,7 @@ export default function ProfilePage() {
                   <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                     <span className="flex items-center gap-1.5">
                       <MapPin className="h-4 w-4" />
-                      {mockUser.city}
+                      {mockUser.cityName}
                     </span>
                     <span className="flex items-center gap-1.5">
                       <Calendar className="h-4 w-4" />
@@ -167,13 +407,13 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Edit Button */}
-                <Link
-                  href="/profile/edit"
+                <button
+                  onClick={() => setIsEditModalOpen(true)}
                   className="flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200"
                 >
                   <Settings className="h-4 w-4" />
                   Düzenle
-                </Link>
+                </button>
               </div>
 
               {/* Stats */}
@@ -298,9 +538,9 @@ export default function ProfilePage() {
                 
                 <div className="space-y-4">
                   {/* Profile Settings */}
-                  <Link
-                    href="/profile/edit"
-                    className="flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                  <button
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="flex items-center justify-between w-full p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors text-left"
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
@@ -312,12 +552,12 @@ export default function ProfilePage() {
                       </div>
                     </div>
                     <ChevronRight className="h-5 w-5 text-gray-400" />
-                  </Link>
+                  </button>
 
                   {/* Change Password */}
-                  <Link
-                    href="/profile/password"
-                    className="flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                  <button
+                    onClick={() => alert("Şifre değiştirme yakında eklenecek!")}
+                    className="flex items-center justify-between w-full p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors text-left"
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
@@ -329,12 +569,11 @@ export default function ProfilePage() {
                       </div>
                     </div>
                     <ChevronRight className="h-5 w-5 text-gray-400" />
-                  </Link>
+                  </button>
 
                   {/* Logout */}
                   <button
                     onClick={() => {
-                      // Handle logout
                       alert("Çıkış yapılıyor...");
                     }}
                     className="flex items-center justify-between w-full p-4 rounded-xl bg-red-50 hover:bg-red-100 transition-colors"
@@ -363,7 +602,14 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Profile Edit Modal */}
+      <ProfileEditModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        user={mockUser}
+        onSave={handleSaveProfile}
+      />
     </div>
   );
 }
-
