@@ -43,7 +43,7 @@ const faqItems: FAQItem[] = [
     id: "5",
     question: "Sitenizde neden tüm illerin yemek listesi bulunmuyor?",
     answer:
-      "Maalesef tüm illerin yemek listesine erişim imkanımız bulunmamaktadır. Eğer elinizde farklı bir ile ait güncel yemek listesi varsa, menü yükleme sayfasından veya iletisim@kykyemek.com adresinden bizimle paylaşabilirsiniz. Katkılarınız için şimdiden teşekkür ederiz!",
+      "Maalesef tüm illerin yemek listesine erişim imkanımız bulunmamaktadır. Eğer elinizde farklı bir ile ait güncel yemek listesi varsa, menü yükleme sayfasından veya iletisim@yemekkyk.com adresinden bizimle paylaşabilirsiniz. Katkılarınız için şimdiden teşekkür ederiz!",
   },
   {
     id: "6",
@@ -150,10 +150,10 @@ export default function FAQPage() {
                 Bize e-posta göndererek sorularınızı iletebilirsiniz.
               </p>
               <a
-                href="mailto:iletisim@kykyemek.com"
+                href="mailto:iletisim@yemekkyk.com"
                 className="inline-flex items-center gap-2 rounded-full bg-green-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-green-600"
               >
-                iletisim@kykyemek.com
+                iletisim@yemekkyk.com
               </a>
             </div>
           </main>

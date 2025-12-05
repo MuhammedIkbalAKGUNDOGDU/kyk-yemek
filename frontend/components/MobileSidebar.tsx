@@ -16,7 +16,7 @@ const navItems = [
   { id: "monthly", label: "Aylık Menü", icon: Calendar, href: "/monthly" },
   { id: "faq", label: "Sıkça Sorulan Sorular", icon: HelpCircle, href: "/faq" },
   { id: "upload", label: "Menü Yükle", icon: Upload, href: "/upload" },
-  { id: "login", label: "Giriş Yap", icon: LogIn, href: "#" },
+  { id: "login", label: "Giriş Yap", icon: LogIn, href: "/login" },
 ];
 
 export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
@@ -77,15 +77,19 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-4">
-          <div className="flex items-center gap-2">
+          <Link 
+            href="/login"
+            onClick={onClose}
+            className="flex items-center gap-2"
+          >
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
               <User className="h-5 w-5 text-gray-400" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-900">Menü Platformu</h3>
-              <p className="text-xs text-green-500">Yemeğinizi seçin</p>
+              <h3 className="text-sm font-semibold text-gray-900">Misafir</h3>
+              <p className="text-xs text-green-500">Giriş Yap →</p>
             </div>
-          </div>
+          </Link>
           <button
             onClick={onClose}
             className="flex h-10 w-10 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
@@ -100,25 +104,6 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentActive === item.id;
-
-              if (item.href === "#") {
-                return (
-                  <li key={item.id}>
-                    <button
-                      onClick={onClose}
-                      className={cn(
-                        "flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium transition-all",
-                        isActive
-                          ? "bg-green-50 text-green-700"
-                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                      )}
-                    >
-                      <Icon className={cn("h-5 w-5", isActive ? "text-green-600" : "text-gray-400")} />
-                      {item.label}
-                    </button>
-                  </li>
-                );
-              }
 
               return (
                 <li key={item.id}>
@@ -144,7 +129,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
         {/* Footer */}
         <div className="absolute bottom-0 left-0 right-0 border-t border-gray-100 p-4">
           <p className="text-center text-xs text-gray-400">
-            © 2024 KYK Yemek
+            © 2024 Yemek KYK
           </p>
         </div>
       </div>

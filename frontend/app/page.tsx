@@ -51,7 +51,7 @@ export default function Home() {
                 })}
               </p>
               <h1 className="text-2xl font-bold text-gray-900 lg:text-3xl">
-                KYK Yemek
+                Yemek KYK
               </h1>
               <p className="mt-1 text-sm text-green-600 font-medium">
                 {selectedCityName}

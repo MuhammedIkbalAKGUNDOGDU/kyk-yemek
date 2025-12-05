@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Menü Platformu - KYK Yemek",
+  title: "Menü Platformu - Yemek KYK",
   description: "KYK yurtlarının günlük yemek menülerini görüntüleyin ve değerlendirin.",
   keywords: ["KYK", "yurt", "yemek", "menü", "öğrenci", "kalori"],
 };
