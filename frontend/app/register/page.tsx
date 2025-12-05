@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { X, Mail, Lock, Eye, EyeOff, User, ArrowRight, CheckCircle, MapPin, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { cities } from "@/data/menus";
+import { authAPI } from "@/lib/api";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -106,12 +107,22 @@ export default function RegisterPage() {
     setIsLoading(true);
     setErrors({});
 
-    // Simulate registration
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    // For demo, redirect to login
-    setIsLoading(false);
-    router.push("/login");
+    try {
+      await authAPI.register({
+        fullName,
+        nickname,
+        email,
+        password,
+        cityId: city,
+      });
+      
+      // Başarılı kayıt, ana sayfaya yönlendir
+      router.push("/");
+    } catch (error: any) {
+      setErrors({ terms: error.message || "Kayıt sırasında bir hata oluştu" });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

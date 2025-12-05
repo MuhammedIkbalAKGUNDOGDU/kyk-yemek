@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { X, Mail, Lock, Eye, EyeOff, ArrowRight, MapPin } from "lucide-react";
+import { X, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { cities } from "@/data/menus";
+import { authAPI } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -45,12 +45,16 @@ export default function LoginPage() {
     setIsLoading(true);
     setErrors({});
 
-    // Simulate login
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    // For demo, just redirect to home
-    setIsLoading(false);
-    router.push("/");
+    try {
+      await authAPI.login({ email, password });
+      
+      // Başarılı giriş, ana sayfaya yönlendir
+      router.push("/");
+    } catch (error: any) {
+      setErrors({ general: error.message || "Giriş sırasında bir hata oluştu" });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

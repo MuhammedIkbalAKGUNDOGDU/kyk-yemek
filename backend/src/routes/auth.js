@@ -1,0 +1,47 @@
+const express = require('express');
+const router = express.Router();
+const { body } = require('express-validator');
+const authController = require('../controllers/authController');
+
+// Validation rules
+const registerValidation = [
+  body('fullName')
+    .trim()
+    .isLength({ min: 3, max: 100 })
+    .withMessage('Ad soyad 3-100 karakter olmalı'),
+  body('nickname')
+    .trim()
+    .isLength({ min: 3, max: 50 })
+    .matches(/^[a-zA-Z0-9_]+$/)
+    .withMessage('Kullanıcı adı 3-50 karakter, sadece harf, rakam ve _ içerebilir'),
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Geçerli bir e-posta adresi girin'),
+  body('password')
+    .isLength({ min: 6 })
+    .withMessage('Şifre en az 6 karakter olmalı'),
+  body('cityId')
+    .trim()
+    .notEmpty()
+    .withMessage('Şehir seçimi zorunlu')
+];
+
+const loginValidation = [
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Geçerli bir e-posta adresi girin'),
+  body('password')
+    .notEmpty()
+    .withMessage('Şifre gerekli')
+];
+
+// Routes
+router.post('/register', registerValidation, authController.register);
+router.post('/login', loginValidation, authController.login);
+router.post('/logout', authController.logout);
+router.get('/me', authController.getMe);
+
+module.exports = router;
+
