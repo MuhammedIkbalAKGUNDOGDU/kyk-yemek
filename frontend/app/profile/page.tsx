@@ -16,7 +16,8 @@ import {
   ChevronRight,
   X,
   Check,
-  Mail
+  Mail,
+  UserCircle
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
@@ -44,6 +45,7 @@ const avatarOptions = [
 // Mock user data
 const initialMockUser = {
   id: "user1",
+  fullName: "Ahmet Yılmaz",
   nickname: "yemeksever34",
   email: "yemeksever34@email.com",
   city: "istanbul",
@@ -61,7 +63,9 @@ const initialMockUser = {
 const mockUserComments = [
   {
     id: "c1",
-    menuTitle: "Kahvaltı - 5 Aralık 2024",
+    menuTitle: "Kahvaltı",
+    date: "5 Aralık 2024",
+    city: "İstanbul",
     text: "Bugünkü kahvaltı gerçekten güzeldi, peynir taze gelmiş.",
     timestamp: new Date(2024, 11, 5, 8, 30),
     likes: 12,
@@ -69,7 +73,9 @@ const mockUserComments = [
   },
   {
     id: "c2",
-    menuTitle: "Akşam Yemeği - 4 Aralık 2024",
+    menuTitle: "Akşam Yemeği",
+    date: "4 Aralık 2024",
+    city: "İstanbul",
     text: "Mercimek çorbası biraz tuzlu olmuş ama yenilebilir seviyede.",
     timestamp: new Date(2024, 11, 4, 19, 15),
     likes: 8,
@@ -77,7 +83,9 @@ const mockUserComments = [
   },
   {
     id: "c3",
-    menuTitle: "Akşam Yemeği - 3 Aralık 2024",
+    menuTitle: "Akşam Yemeği",
+    date: "3 Aralık 2024",
+    city: "İstanbul",
     text: "Tavuk sote muhteşemdi, şefe teşekkürler! 👨‍🍳",
     timestamp: new Date(2024, 11, 3, 18, 45),
     likes: 23,
@@ -85,7 +93,9 @@ const mockUserComments = [
   },
   {
     id: "c4",
-    menuTitle: "Kahvaltı - 2 Aralık 2024",
+    menuTitle: "Kahvaltı",
+    date: "2 Aralık 2024",
+    city: "Ankara",
     text: "Yumurtalar bugün güzel pişmişti.",
     timestamp: new Date(2024, 11, 2, 9, 0),
     likes: 5,
@@ -93,7 +103,9 @@ const mockUserComments = [
   },
   {
     id: "c5",
-    menuTitle: "Akşam Yemeği - 1 Aralık 2024",
+    menuTitle: "Akşam Yemeği",
+    date: "1 Aralık 2024",
+    city: "İstanbul",
     text: "Pilav biraz sert kalmış, bir sonrakine dikkat edilmeli.",
     timestamp: new Date(2024, 11, 1, 20, 30),
     likes: 15,
@@ -132,8 +144,9 @@ function ProfileEditModal({
   isOpen: boolean;
   onClose: () => void;
   user: typeof initialMockUser;
-  onSave: (data: { nickname: string; email: string; city: string; avatarId: string }) => void;
+  onSave: (data: { fullName: string; nickname: string; email: string; city: string; avatarId: string }) => void;
 }) {
+  const [fullName, setFullName] = useState(user.fullName);
   const [nickname, setNickname] = useState(user.nickname);
   const [email, setEmail] = useState(user.email);
   const [city, setCity] = useState(user.city);
@@ -142,6 +155,7 @@ function ProfileEditModal({
 
   useEffect(() => {
     if (isOpen) {
+      setFullName(user.fullName);
       setNickname(user.nickname);
       setEmail(user.email);
       setCity(user.city);
@@ -166,7 +180,7 @@ function ProfileEditModal({
   const handleSave = async () => {
     setIsSaving(true);
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    onSave({ nickname, email, city, avatarId });
+    onSave({ fullName, nickname, email, city, avatarId });
     setIsSaving(false);
     onClose();
   };
@@ -235,6 +249,23 @@ function ProfileEditModal({
               </div>
             </div>
 
+            {/* Full Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Ad Soyad
+              </label>
+              <div className="relative">
+                <UserCircle className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-12 pr-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 transition-all focus:bg-white focus:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-100"
+                  placeholder="Ahmet Yılmaz"
+                />
+              </div>
+            </div>
+
             {/* Nickname */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -250,6 +281,7 @@ function ProfileEditModal({
                   placeholder="Kullanıcı adınız"
                 />
               </div>
+              <p className="mt-1.5 text-xs text-gray-500">Yorumlarda bu isim görünecektir</p>
             </div>
 
             {/* Email */}
@@ -334,10 +366,11 @@ export default function ProfilePage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [mockUser, setMockUser] = useState(initialMockUser);
 
-  const handleSaveProfile = (data: { nickname: string; email: string; city: string; avatarId: string }) => {
+  const handleSaveProfile = (data: { fullName: string; nickname: string; email: string; city: string; avatarId: string }) => {
     const cityObj = cities.find((c) => c.id === data.city);
     setMockUser({
       ...mockUser,
+      fullName: data.fullName,
       nickname: data.nickname,
       email: data.email,
       city: data.city,
@@ -391,9 +424,10 @@ export default function ProfilePage() {
 
                 {/* User Info */}
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                    {mockUser.nickname}
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    {mockUser.fullName}
                   </h1>
+                  <p className="text-sm text-green-600 font-medium mb-2">@{mockUser.nickname}</p>
                   <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                     <span className="flex items-center gap-1.5">
                       <MapPin className="h-4 w-4" />
@@ -498,9 +532,18 @@ export default function ProfilePage() {
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
                             <span className="text-sm font-medium text-green-600">
                               {comment.menuTitle}
+                            </span>
+                            <span className="text-xs text-gray-400">•</span>
+                            <span className="text-xs font-medium text-gray-600">
+                              {comment.date}
+                            </span>
+                            <span className="text-xs text-gray-400">•</span>
+                            <span className="flex items-center gap-1 text-xs text-blue-600 font-medium">
+                              <MapPin className="h-3 w-3" />
+                              {comment.city}
                             </span>
                             <span className="text-xs text-gray-400">•</span>
                             <span className="text-xs text-gray-400">

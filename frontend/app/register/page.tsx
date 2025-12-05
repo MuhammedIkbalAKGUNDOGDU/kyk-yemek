@@ -3,12 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { X, Mail, Lock, Eye, EyeOff, User, ArrowRight, CheckCircle, MapPin } from "lucide-react";
+import { X, Mail, Lock, Eye, EyeOff, User, ArrowRight, CheckCircle, MapPin, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { cities } from "@/data/menus";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const [fullName, setFullName] = useState("");
   const [nickname, setNickname] = useState("");
   const [email, setEmail] = useState("");
   const [city, setCity] = useState("");
@@ -19,6 +20,7 @@ export default function RegisterPage() {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{
+    fullName?: string;
     nickname?: string;
     email?: string;
     city?: string;
@@ -57,6 +59,12 @@ export default function RegisterPage() {
     e.preventDefault();
     
     const newErrors: typeof errors = {};
+
+    if (!fullName) {
+      newErrors.fullName = "Ad soyad gereklidir.";
+    } else if (fullName.trim().length < 3) {
+      newErrors.fullName = "Ad soyad en az 3 karakter olmalıdır.";
+    }
 
     if (!nickname) {
       newErrors.nickname = "Kullanıcı adı gereklidir.";
@@ -133,6 +141,34 @@ export default function RegisterPage() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Full Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Ad Soyad
+              </label>
+              <div className="relative">
+                <UserCircle className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => {
+                    setFullName(e.target.value);
+                    setErrors({ ...errors, fullName: undefined });
+                  }}
+                  placeholder="Ahmet Yılmaz"
+                  className={cn(
+                    "w-full rounded-xl border bg-gray-50/50 pl-12 pr-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all focus:bg-white focus:outline-none focus:ring-2",
+                    errors.fullName 
+                      ? "border-red-300 focus:border-red-400 focus:ring-red-100" 
+                      : "border-gray-200 focus:border-green-400 focus:ring-green-100"
+                  )}
+                />
+              </div>
+              {errors.fullName && (
+                <p className="mt-2 text-sm text-red-500">{errors.fullName}</p>
+              )}
+            </div>
+
             {/* Nickname */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -156,6 +192,7 @@ export default function RegisterPage() {
                   )}
                 />
               </div>
+              <p className="mt-1.5 text-xs text-gray-500">Yorumlarda bu isim görünecektir</p>
               {errors.nickname && (
                 <p className="mt-2 text-sm text-red-500">{errors.nickname}</p>
               )}
