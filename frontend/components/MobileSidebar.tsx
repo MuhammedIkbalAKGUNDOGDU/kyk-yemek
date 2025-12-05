@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { X, HelpCircle, Calendar, Upload, LogIn, User, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { hasToken, User as UserType } from "@/lib/api";
 
 interface MobileSidebarProps {
   isOpen: boolean;
@@ -19,8 +20,38 @@ const navItems = [
   { id: "login", label: "Giriş Yap", icon: LogIn, href: "/login" },
 ];
 
+// localStorage'ı izleyen hook
+let cachedUser: UserType | null = null;
+let cachedUserStr: string | null = null;
+
+function useUser() {
+  const getSnapshot = (): UserType | null => {
+    if (typeof window === "undefined") return null;
+    if (!hasToken()) {
+      cachedUser = null;
+      cachedUserStr = null;
+      return null;
+    }
+    const userStr = localStorage.getItem("user");
+    if (userStr !== cachedUserStr) {
+      cachedUserStr = userStr;
+      cachedUser = userStr ? JSON.parse(userStr) : null;
+    }
+    return cachedUser;
+  };
+  const getServerSnapshot = (): UserType | null => null;
+  const subscribe = (callback: () => void) => {
+    window.addEventListener("storage", callback);
+    return () => window.removeEventListener("storage", callback);
+  };
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
+
 export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
   const pathname = usePathname();
+  const user = useUser();
+  const isLoggedIn = !!user;
+  const userName = user?.fullName || null;
 
   const getActiveItem = () => {
     if (pathname === "/faq") return "faq";
@@ -80,7 +111,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-4">
           <Link 
-            href="/profile"
+            href={isLoggedIn ? "/profile" : "/login"}
             onClick={onClose}
             className="flex items-center gap-2"
           >
@@ -88,8 +119,12 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
               <User className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-900">Profilim</h3>
-              <p className="text-xs text-green-500">Bilgileri gör →</p>
+              <h3 className="text-sm font-semibold text-gray-900">
+                {isLoggedIn && userName ? userName : "Misafir"}
+              </h3>
+              <p className="text-xs text-green-500">
+                {isLoggedIn ? "Profili gör →" : "Giriş yap →"}
+              </p>
             </div>
           </Link>
           <button

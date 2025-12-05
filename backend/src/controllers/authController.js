@@ -153,22 +153,26 @@ exports.logout = async (req, res) => {
   res.json({ message: 'Çıkış başarılı' });
 };
 
+// Token doğrulama yardımcı fonksiyonu
+const verifyToken = (req) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null;
+  }
+  const token = authHeader.split(' ')[1];
+  try {
+    return jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    return null;
+  }
+};
+
 // GET ME - Aktif kullanıcı bilgisi
 exports.getMe = async (req, res) => {
   try {
-    // Token'dan user ID al
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const decoded = verifyToken(req);
+    if (!decoded) {
       return res.status(401).json({ error: 'Yetkilendirme gerekli' });
-    }
-
-    const token = authHeader.split(' ')[1];
-    
-    let decoded;
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (err) {
-      return res.status(401).json({ error: 'Geçersiz veya süresi dolmuş token' });
     }
 
     // Kullanıcıyı getir
@@ -202,6 +206,127 @@ exports.getMe = async (req, res) => {
   } catch (error) {
     console.error('GetMe error:', error);
     res.status(500).json({ error: 'Kullanıcı bilgisi alınamadı' });
+  }
+};
+
+// UPDATE PROFILE - Profil güncelle (e-posta hariç)
+exports.updateProfile = async (req, res) => {
+  try {
+    const decoded = verifyToken(req);
+    if (!decoded) {
+      return res.status(401).json({ error: 'Yetkilendirme gerekli' });
+    }
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        error: 'Doğrulama hatası', 
+        details: errors.array() 
+      });
+    }
+
+    const { fullName, nickname, cityId, avatarId } = req.body;
+    const userId = decoded.userId;
+
+    // Eğer nickname değişiyorsa, başka kullanıcıda var mı kontrol et
+    if (nickname) {
+      const nicknameCheck = await db.query(
+        'SELECT id FROM users WHERE nickname = $1 AND id != $2',
+        [nickname, userId]
+      );
+      if (nicknameCheck.rows.length > 0) {
+        return res.status(400).json({ error: 'Bu kullanıcı adı başka bir kullanıcı tarafından kullanılıyor' });
+      }
+    }
+
+    // Kullanıcıyı güncelle (e-posta hariç)
+    const result = await db.query(
+      `UPDATE users 
+       SET full_name = COALESCE($1, full_name),
+           nickname = COALESCE($2, nickname),
+           city_id = COALESCE($3, city_id),
+           avatar_id = COALESCE($4, avatar_id),
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $5 AND is_active = true
+       RETURNING id, full_name, nickname, email, city_id, avatar_id, role, is_verified, created_at`,
+      [fullName, nickname, cityId, avatarId, userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+    }
+
+    const user = result.rows[0];
+
+    res.json({
+      message: 'Profil güncellendi',
+      user: {
+        id: user.id,
+        fullName: user.full_name,
+        nickname: user.nickname,
+        email: user.email,
+        cityId: user.city_id,
+        avatarId: user.avatar_id,
+        role: user.role,
+        isVerified: user.is_verified,
+        createdAt: user.created_at
+      }
+    });
+
+  } catch (error) {
+    console.error('UpdateProfile error:', error);
+    res.status(500).json({ error: 'Profil güncellenirken bir hata oluştu' });
+  }
+};
+
+// CHANGE PASSWORD - Şifre değiştir
+exports.changePassword = async (req, res) => {
+  try {
+    const decoded = verifyToken(req);
+    if (!decoded) {
+      return res.status(401).json({ error: 'Yetkilendirme gerekli' });
+    }
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        error: 'Doğrulama hatası', 
+        details: errors.array() 
+      });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+    const userId = decoded.userId;
+
+    // Mevcut şifreyi kontrol et
+    const userResult = await db.query(
+      'SELECT password_hash FROM users WHERE id = $1 AND is_active = true',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, userResult.rows[0].password_hash);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Mevcut şifre hatalı' });
+    }
+
+    // Yeni şifreyi hashle ve güncelle
+    const salt = await bcrypt.genSalt(10);
+    const newPasswordHash = await bcrypt.hash(newPassword, salt);
+
+    await db.query(
+      'UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      [newPasswordHash, userId]
+    );
+
+    res.json({ message: 'Şifre başarıyla güncellendi' });
+
+  } catch (error) {
+    console.error('ChangePassword error:', error);
+    res.status(500).json({ error: 'Şifre değiştirilirken bir hata oluştu' });
   }
 };
 

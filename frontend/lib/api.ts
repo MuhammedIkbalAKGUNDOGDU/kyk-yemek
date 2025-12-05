@@ -19,6 +19,36 @@ export const setToken = (token: string) => {
 export const removeToken = () => {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  }
+};
+
+// Kullanıcı bilgisini localStorage'a kaydet
+export const setStoredUser = (user: User) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('user', JSON.stringify(user));
+  }
+};
+
+// Kullanıcı bilgisini localStorage'dan al
+export const getStoredUser = (): User | null => {
+  if (typeof window !== 'undefined') {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        return JSON.parse(userStr);
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+};
+
+// Kullanıcı bilgisini sil
+export const removeStoredUser = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('user');
   }
 };
 
@@ -49,6 +79,25 @@ async function fetchAPI(endpoint: string, options: RequestInit = {}) {
   return data;
 }
 
+// User tipi
+export interface User {
+  id: string;
+  fullName: string;
+  nickname: string;
+  email: string;
+  cityId: string;
+  avatarId: string | null;
+  role: string;
+  isVerified?: boolean;
+  createdAt?: string;
+  lastLogin?: string;
+}
+
+// Token var mı kontrol et
+export const hasToken = () => {
+  return !!getToken();
+};
+
 // AUTH API
 export const authAPI = {
   // Kayıt ol
@@ -66,6 +115,9 @@ export const authAPI = {
     if (data.token) {
       setToken(data.token);
     }
+    if (data.user) {
+      setStoredUser(data.user);
+    }
     return data;
   },
 
@@ -78,18 +130,58 @@ export const authAPI = {
     if (data.token) {
       setToken(data.token);
     }
+    if (data.user) {
+      setStoredUser(data.user);
+    }
     return data;
   },
 
   // Çıkış yap
   logout: async () => {
-    await fetchAPI('/auth/logout', { method: 'POST' });
+    try {
+      await fetchAPI('/auth/logout', { method: 'POST' });
+    } catch {
+      // ignore
+    }
     removeToken();
+    removeStoredUser();
   },
 
   // Aktif kullanıcı bilgisi
-  getMe: async () => {
-    return await fetchAPI('/auth/me');
+  getMe: async (): Promise<{ user: User }> => {
+    const data = await fetchAPI('/auth/me');
+    if (data.user) {
+      setStoredUser(data.user);
+    }
+    return data;
+  },
+
+  // Profil güncelle (e-posta hariç)
+  updateProfile: async (profileData: {
+    fullName?: string;
+    nickname?: string;
+    cityId?: string;
+    avatarId?: string;
+  }): Promise<{ message: string; user: User }> => {
+    const data = await fetchAPI('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
+    if (data.user) {
+      setStoredUser(data.user);
+    }
+    return data;
+  },
+
+  // Şifre değiştir
+  changePassword: async (passwords: {
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<{ message: string }> => {
+    return await fetchAPI('/auth/password', {
+      method: 'PUT',
+      body: JSON.stringify(passwords),
+    });
   },
 };
 
