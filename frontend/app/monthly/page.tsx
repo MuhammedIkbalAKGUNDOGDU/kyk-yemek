@@ -1,22 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import { Calendar, Sun, Moon, MessageSquare } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Calendar, Sun, Moon, MessageSquare, Upload, AlertCircle } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
 import { AdBanner } from "@/components/AdBanner";
 import { CommentModal } from "@/components/CommentModal";
-import { monthlyMenu, currentMonth, type DailyMenu } from "@/data/monthlyMenu";
 import { useCity } from "@/hooks/useCity";
+import { getMonthlyMenus, DailyMenu } from "@/lib/publicApi";
 import type { Comment } from "@/data/menus";
+import Link from "next/link";
+
+// UI için gün kartı tipi
+interface DayCardData {
+  date: number;
+  dayName: string;
+  breakfast: string[];
+  dinner: string[];
+}
 
 interface DayCardProps {
-  day: DailyMenu;
-  onOpenComments: (day: DailyMenu) => void;
+  day: DayCardData;
+  onOpenComments: (day: DayCardData) => void;
   commentCounts: Record<number, number>;
 }
 
 function DayCard({ day, onOpenComments, commentCounts }: DayCardProps) {
+  const hasBreakfast = day.breakfast.length > 0;
+  const hasDinner = day.dinner.length > 0;
+
+  if (!hasBreakfast && !hasDinner) return null;
+
   return (
     <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
       {/* Day Header */}
@@ -26,36 +40,40 @@ function DayCard({ day, onOpenComments, commentCounts }: DayCardProps) {
             {day.date}
           </span>
           <span className="text-sm font-medium text-gray-600">
-            {day.day}
+            {day.dayName}
           </span>
         </div>
       </div>
 
       {/* Breakfast */}
-      <div className="mb-4">
-        <div className="mb-2 flex items-center gap-2">
-          <Sun className="h-4 w-4 text-amber-500" />
-          <span className="text-xs font-semibold uppercase tracking-wide text-amber-600">
-            Kahvaltı
-          </span>
+      {hasBreakfast && (
+        <div className="mb-4">
+          <div className="mb-2 flex items-center gap-2">
+            <Sun className="h-4 w-4 text-amber-500" />
+            <span className="text-xs font-semibold uppercase tracking-wide text-amber-600">
+              Kahvaltı
+            </span>
+          </div>
+          <p className="text-sm text-gray-700 leading-relaxed">
+            {day.breakfast.join(", ")}
+          </p>
         </div>
-        <p className="text-sm text-gray-700 leading-relaxed">
-          {day.breakfast.join(", ")}
-        </p>
-      </div>
+      )}
 
       {/* Dinner */}
-      <div className="mb-4">
-        <div className="mb-2 flex items-center gap-2">
-          <Moon className="h-4 w-4 text-indigo-500" />
-          <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
-            Akşam
-          </span>
+      {hasDinner && (
+        <div className="mb-4">
+          <div className="mb-2 flex items-center gap-2">
+            <Moon className="h-4 w-4 text-indigo-500" />
+            <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
+              Akşam
+            </span>
+          </div>
+          <p className="text-sm text-gray-700 leading-relaxed">
+            {day.dinner.join(", ")}
+          </p>
         </div>
-        <p className="text-sm text-gray-700 leading-relaxed">
-          {day.dinner.join(", ")}
-        </p>
-      </div>
+      )}
 
       {/* Comment Button */}
       <button
@@ -83,20 +101,81 @@ function InlineAd() {
   );
 }
 
+// Gün isimlerini al
+function getDayName(year: number, month: number, day: number): string {
+  const date = new Date(year, month - 1, day);
+  return date.toLocaleDateString('tr-TR', { weekday: 'long' });
+}
+
+// Aydaki gün sayısını al
+function getDaysInMonth(year: number, month: number): number {
+  return new Date(year, month, 0).getDate();
+}
+
 export default function MonthlyMenuPage() {
   const { selectedCity, selectedCityName, setSelectedCity, isLoaded } = useCity();
-  const [selectedDay, setSelectedDay] = useState<DailyMenu | null>(null);
-  const [commentsMap, setCommentsMap] = useState<Record<number, Comment[]>>(
-    () => {
-      const map: Record<number, Comment[]> = {};
-      monthlyMenu.forEach((day) => {
-        map[day.date] = day.comments;
-      });
-      return map;
-    }
-  );
+  
+  const now = new Date();
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
+  
+  const [menuData, setMenuData] = useState<DailyMenu[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [selectedDay, setSelectedDay] = useState<DayCardData | null>(null);
+  const [commentsMap, setCommentsMap] = useState<Record<number, Comment[]>>({});
 
-  const handleOpenComments = (day: DailyMenu) => {
+  const monthNames = [
+    "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+    "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
+  ];
+
+  const currentMonthName = `${monthNames[selectedMonth - 1]} ${selectedYear}`;
+
+  // Şehir veya ay değiştiğinde menüleri çek
+  useEffect(() => {
+    if (!isLoaded || !selectedCity) return;
+
+    const fetchMenus = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await getMonthlyMenus(selectedCity, selectedYear, selectedMonth);
+        setMenuData(data);
+      } catch (err) {
+        console.error('Aylık menü çekme hatası:', err);
+        setError('Menüler yüklenirken bir hata oluştu');
+        setMenuData([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMenus();
+  }, [selectedCity, selectedYear, selectedMonth, isLoaded]);
+
+  // API verisini gün kartlarına dönüştür
+  const dayCards: DayCardData[] = [];
+  const daysInMonth = getDaysInMonth(selectedYear, selectedMonth);
+  
+  for (let day = 1; day <= daysInMonth; day++) {
+    const menuForDay = menuData.find(m => {
+      const menuDate = new Date(m.date);
+      return menuDate.getDate() === day;
+    });
+
+    if (menuForDay) {
+      dayCards.push({
+        date: day,
+        dayName: getDayName(selectedYear, selectedMonth, day),
+        breakfast: menuForDay.breakfast?.items || [],
+        dinner: menuForDay.dinner?.items || [],
+      });
+    }
+  }
+
+  const handleOpenComments = (day: DayCardData) => {
     setSelectedDay(day);
   };
 
@@ -124,7 +203,7 @@ export default function MonthlyMenuPage() {
   const renderDaysWithAds = () => {
     const elements: React.ReactNode[] = [];
     
-    monthlyMenu.forEach((day, index) => {
+    dayCards.forEach((day, index) => {
       elements.push(
         <DayCard
           key={day.date}
@@ -134,8 +213,8 @@ export default function MonthlyMenuPage() {
         />
       );
 
-      // Add ad after every 6 days (after 6th, 12th, 18th, 24th, 30th)
-      if ((index + 1) % 6 === 0 && index < monthlyMenu.length - 1) {
+      // Add ad after every 6 days
+      if ((index + 1) % 6 === 0 && index < dayCards.length - 1) {
         elements.push(<InlineAd key={`ad-${index}`} />);
       }
     });
@@ -184,27 +263,106 @@ export default function MonthlyMenuPage() {
                 Aylık Menü
               </h1>
               <p className="mt-2 text-lg font-medium text-green-600">
-                {currentMonth}
+                {currentMonthName}
               </p>
               <p className="mt-1 text-sm text-gray-500">
                 {selectedCityName}
               </p>
-            </div>
 
-            {/* Monthly Menu Card */}
-            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-              {/* Grid - 2 days per row */}
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                {renderDaysWithAds()}
+              {/* Month/Year Selector */}
+              <div className="mt-4 flex items-center justify-center gap-3">
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                  className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-green-500 focus:outline-none"
+                >
+                  {monthNames.map((name, index) => (
+                    <option key={index} value={index + 1}>{name}</option>
+                  ))}
+                </select>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                  className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-green-500 focus:outline-none"
+                >
+                  {[2024, 2025, 2026].map((year) => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            {/* Info Note */}
-            <div className="mt-6 rounded-xl bg-amber-50 p-4 text-center">
-              <p className="text-sm text-amber-700">
-                📌 Menüler değişiklik gösterebilir. Güncel bilgi için yemekhanenizi kontrol ediniz.
-              </p>
-            </div>
+            {/* Loading State */}
+            {isLoading && (
+              <div className="flex flex-col items-center justify-center py-16">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-green-500 border-t-transparent mb-4" />
+                <p className="text-gray-500">Menüler yükleniyor...</p>
+              </div>
+            )}
+
+            {/* Error State */}
+            {error && !isLoading && (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
+                  <AlertCircle className="w-8 h-8 text-red-500" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Bir Hata Oluştu</h3>
+                <p className="text-gray-500 mb-4">{error}</p>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors"
+                >
+                  Tekrar Dene
+                </button>
+              </div>
+            )}
+
+            {/* No Menu State */}
+            {!isLoading && !error && dayCards.length === 0 && (
+              <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-white p-8 lg:p-12 text-center">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center mx-auto mb-6">
+                  <span className="text-4xl">📅</span>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">
+                  {selectedCityName} - {currentMonthName} İçin Menü Bulunamadı
+                </h3>
+                <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                  Bu şehir için henüz {currentMonthName} ayının menüsü yüklenmemiş. 
+                  Elinizde menü varsa yükleyerek diğer öğrencilere yardımcı olabilirsiniz!
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Link
+                    href="/upload"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-500 px-6 py-3 font-semibold text-white hover:bg-green-600 transition-colors"
+                  >
+                    <Upload className="w-5 h-5" />
+                    Menü Yükle
+                  </Link>
+                </div>
+                <p className="mt-6 text-sm text-gray-400">
+                  İletişim: <a href="mailto:iletisim@yemekkyk.com" className="text-green-600 hover:underline">iletisim@yemekkyk.com</a>
+                </p>
+              </div>
+            )}
+
+            {/* Monthly Menu Card */}
+            {!isLoading && !error && dayCards.length > 0 && (
+              <>
+                <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+                  {/* Grid - 2 days per row */}
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    {renderDaysWithAds()}
+                  </div>
+                </div>
+
+                {/* Info Note */}
+                <div className="mt-6 rounded-xl bg-amber-50 p-4 text-center">
+                  <p className="text-sm text-amber-700">
+                    📌 Menüler değişiklik gösterebilir. Güncel bilgi için yemekhanenizi kontrol ediniz.
+                  </p>
+                </div>
+              </>
+            )}
           </main>
 
           {/* Right Sidebar */}
@@ -221,7 +379,7 @@ export default function MonthlyMenuPage() {
         <CommentModal
           isOpen={!!selectedDay}
           onClose={() => setSelectedDay(null)}
-          menuTitle={`${selectedDay.date} ${currentMonth.split(" ")[0]} - ${selectedDay.day}`}
+          menuTitle={`${selectedDay.date} ${currentMonthName} - ${selectedDay.dayName}`}
           comments={commentsMap[selectedDay.date] || []}
           onAddComment={handleAddComment}
         />
