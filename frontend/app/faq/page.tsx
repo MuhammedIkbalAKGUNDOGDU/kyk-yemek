@@ -5,6 +5,7 @@ import { ChevronDown, HelpCircle } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
 import { AdBanner } from "@/components/AdBanner";
+import { useCity } from "@/hooks/useCity";
 import { cn } from "@/lib/utils";
 
 interface FAQItem {
@@ -86,12 +87,25 @@ function FAQAccordion({ item }: { item: FAQItem }) {
 }
 
 export default function FAQPage() {
-  const [selectedCity, setSelectedCity] = useState("istanbul");
+  const { selectedCity, selectedCityName, setSelectedCity, isLoaded } = useCity();
+
+  // Don't render until localStorage is loaded
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-green-500 border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <Header selectedCity={selectedCity} onCityChange={setSelectedCity} />
+      <Header
+        selectedCity={selectedCity}
+        selectedCityName={selectedCityName}
+        onCityChange={setSelectedCity}
+      />
 
       {/* Main Layout */}
       <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
@@ -155,4 +169,3 @@ export default function FAQPage() {
     </div>
   );
 }
-

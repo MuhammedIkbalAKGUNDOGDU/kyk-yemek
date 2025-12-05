@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HelpCircle, Calendar, Upload, LogIn, User } from "lucide-react";
+import { HelpCircle, Calendar, Upload, LogIn, User, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AdBanner } from "./AdBanner";
 
@@ -12,8 +12,9 @@ interface SidebarProps {
 }
 
 const navItems = [
+  { id: "home", label: "Ana Sayfa", icon: Home, href: "/" },
+  { id: "monthly", label: "Aylık Menü", icon: Calendar, href: "/monthly" },
   { id: "faq", label: "Sıkça Sorulan Sorular", icon: HelpCircle, href: "/faq" },
-  { id: "monthly", label: "Aylık Menü", icon: Calendar, href: "/" },
   { id: "upload", label: "Menü Yükle", icon: Upload, href: "#" },
   { id: "login", label: "Giriş Yap", icon: LogIn, href: "#" },
 ];
@@ -24,8 +25,9 @@ export function Sidebar({ activeItem, onItemClick }: SidebarProps) {
   const getActiveItem = () => {
     if (activeItem) return activeItem;
     if (pathname === "/faq") return "faq";
-    if (pathname === "/") return "monthly";
-    return "monthly";
+    if (pathname === "/monthly") return "monthly";
+    if (pathname === "/") return "home";
+    return "home";
   };
 
   const currentActive = getActiveItem();

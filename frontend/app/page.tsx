@@ -1,20 +1,32 @@
 "use client";
 
-import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
 import { MenuCard } from "@/components/MenuCard";
 import { AdBanner } from "@/components/AdBanner";
 import { mockMenus } from "@/data/menus";
+import { useCity } from "@/hooks/useCity";
 
 export default function Home() {
-  const [selectedCity, setSelectedCity] = useState("istanbul");
-  const [activeNavItem, setActiveNavItem] = useState("monthly");
+  const { selectedCity, selectedCityName, setSelectedCity, isLoaded } = useCity();
+
+  // Don't render until localStorage is loaded to prevent hydration mismatch
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-green-500 border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <Header selectedCity={selectedCity} onCityChange={setSelectedCity} />
+      <Header
+        selectedCity={selectedCity}
+        selectedCityName={selectedCityName}
+        onCityChange={setSelectedCity}
+      />
 
       {/* Main Layout */}
       <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
@@ -22,7 +34,7 @@ export default function Home() {
           {/* Left Sidebar */}
           <div className="hidden lg:block lg:w-60 lg:shrink-0">
             <div className="sticky top-[80px]">
-              <Sidebar activeItem={activeNavItem} onItemClick={setActiveNavItem} />
+              <Sidebar activeItem="home" />
             </div>
           </div>
 
@@ -41,27 +53,9 @@ export default function Home() {
               <h1 className="text-2xl font-bold text-gray-900 lg:text-3xl">
                 KYK Yemek
               </h1>
-            </div>
-
-            {/* Mobile Navigation */}
-            <div className="mb-8 lg:hidden">
-              <div className="flex flex-wrap justify-center gap-2">
-                {["monthly", "upload", "login"].map((item) => (
-                  <button
-                    key={item}
-                    onClick={() => setActiveNavItem(item)}
-                    className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-                      activeNavItem === item
-                        ? "bg-green-500 text-white"
-                        : "bg-white text-gray-600 hover:bg-gray-100"
-                    }`}
-                  >
-                    {item === "monthly" && "Aylık Menü"}
-                    {item === "upload" && "Menü Yükle"}
-                    {item === "login" && "Giriş Yap"}
-                  </button>
-                ))}
-              </div>
+              <p className="mt-1 text-sm text-green-600 font-medium">
+                {selectedCityName}
+              </p>
             </div>
 
             {/* Menu Cards */}
