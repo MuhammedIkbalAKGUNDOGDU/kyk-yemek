@@ -17,7 +17,23 @@
 
 * {
   box-sizing: border-box;
-  
+}
+
+/* Buttons - Pointer Cursor */
+button,
+[role="button"],
+input[type="submit"],
+input[type="button"],
+input[type="reset"],
+select,
+a {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled {
+  cursor: not-allowed;
 }
 
 html {
