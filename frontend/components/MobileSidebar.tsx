@@ -26,6 +26,8 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
     if (pathname === "/faq") return "faq";
     if (pathname === "/monthly") return "monthly";
     if (pathname === "/upload") return "upload";
+    if (pathname === "/login") return "login";
+    if (pathname?.startsWith("/profile")) return "profile";
     if (pathname === "/") return "home";
     return "home";
   };
@@ -78,16 +80,16 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-4">
           <Link 
-            href="/login"
+            href="/profile"
             onClick={onClose}
             className="flex items-center gap-2"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-              <User className="h-5 w-5 text-gray-400" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-green-400 to-emerald-500">
+              <User className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-900">Misafir</h3>
-              <p className="text-xs text-green-500">Giriş Yap →</p>
+              <h3 className="text-sm font-semibold text-gray-900">Profilim</h3>
+              <p className="text-xs text-green-500">Bilgileri gör →</p>
             </div>
           </Link>
           <button
