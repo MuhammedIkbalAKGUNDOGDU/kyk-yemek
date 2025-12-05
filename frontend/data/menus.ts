@@ -1,3 +1,10 @@
+export interface Comment {
+  id: string;
+  author: string;
+  text: string;
+  timestamp: Date;
+}
+
 export interface FoodItem {
   id: string;
   name: string;
@@ -13,7 +20,7 @@ export interface Menu {
   type: "breakfast" | "dinner";
   items: FoodItem[];
   totalCalories: number;
-  comments: number;
+  comments: Comment[];
 }
 
 export interface City {
@@ -35,7 +42,6 @@ export const mockMenus: Menu[] = [
     title: "Akşam Yemeği Menüsü",
     type: "dinner",
     totalCalories: 750,
-    comments: 24,
     items: [
       {
         id: "1a",
@@ -62,13 +68,32 @@ export const mockMenus: Menu[] = [
         dislikes: 2,
       },
     ],
+    comments: [
+      {
+        id: "c1",
+        author: "Ahmet Y",
+        text: "Bugunki menu cok guzeldi elinize saglik",
+        timestamp: new Date(2024, 11, 5, 19, 30),
+      },
+      {
+        id: "c2",
+        author: "Zeynep K",
+        text: "Mercimek corbasi harikaydı",
+        timestamp: new Date(2024, 11, 5, 20, 15),
+      },
+      {
+        id: "c3",
+        author: "Mehmet A",
+        text: "Sutlac biraz daha sekerli olabilirdi",
+        timestamp: new Date(2024, 11, 5, 20, 45),
+      },
+    ],
   },
   {
     id: "2",
     title: "Kahvaltı Menüsü",
     type: "breakfast",
     totalCalories: 1550,
-    comments: 18,
     items: [
       {
         id: "2a",
@@ -93,6 +118,20 @@ export const mockMenus: Menu[] = [
         calories: 300,
         likes: 78,
         dislikes: 4,
+      },
+    ],
+    comments: [
+      {
+        id: "c4",
+        author: "Elif S",
+        text: "Kahvalti cesitleri cok zengin tesekkurler",
+        timestamp: new Date(2024, 11, 5, 8, 30),
+      },
+      {
+        id: "c5",
+        author: "Can D",
+        text: "Borek cok lezzetliydi 10 uzerinden 10",
+        timestamp: new Date(2024, 11, 5, 9, 0),
       },
     ],
   },

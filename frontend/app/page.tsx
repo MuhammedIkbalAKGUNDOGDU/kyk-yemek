@@ -28,10 +28,20 @@ export default function Home() {
 
           {/* Main Content */}
           <main className="min-w-0 flex-1">
-            {/* Page Title */}
-            <h1 className="mb-8 text-center text-2xl font-bold text-gray-900 lg:text-3xl">
-              KYK Yemek
-            </h1>
+            {/* Page Title with Date */}
+            <div className="mb-8 text-center">
+              <p className="mb-2 text-base text-gray-500">
+                {new Date().toLocaleDateString("tr-TR", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
+              <h1 className="text-2xl font-bold text-gray-900 lg:text-3xl">
+                KYK Yemek
+              </h1>
+            </div>
 
             {/* Mobile Navigation */}
             <div className="mb-8 lg:hidden">

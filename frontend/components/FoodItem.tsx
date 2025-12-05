@@ -10,14 +10,34 @@ interface FoodItemProps {
 }
 
 export function FoodItem({ item }: FoodItemProps) {
+  const [likes, setLikes] = useState(item.likes);
+  const [dislikes, setDislikes] = useState(item.dislikes);
   const [userVote, setUserVote] = useState<"like" | "dislike" | null>(null);
 
   const handleLike = () => {
-    setUserVote(userVote === "like" ? null : "like");
+    if (userVote === "like") {
+      setLikes((prev) => prev - 1);
+      setUserVote(null);
+    } else {
+      if (userVote === "dislike") {
+        setDislikes((prev) => prev - 1);
+      }
+      setLikes((prev) => prev + 1);
+      setUserVote("like");
+    }
   };
 
   const handleDislike = () => {
-    setUserVote(userVote === "dislike" ? null : "dislike");
+    if (userVote === "dislike") {
+      setDislikes((prev) => prev - 1);
+      setUserVote(null);
+    } else {
+      if (userVote === "like") {
+        setLikes((prev) => prev - 1);
+      }
+      setDislikes((prev) => prev + 1);
+      setUserVote("dislike");
+    }
   };
 
   return (
@@ -37,7 +57,10 @@ export function FoodItem({ item }: FoodItemProps) {
           )}
         >
           <ThumbsUp className="h-4 w-4" />
-          Beğen
+          <span>Beğen</span>
+          <span className="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+            {likes}
+          </span>
         </button>
         <button
           onClick={handleDislike}
@@ -49,7 +72,10 @@ export function FoodItem({ item }: FoodItemProps) {
           )}
         >
           <ThumbsDown className="h-4 w-4" />
-          Beğenme
+          <span>Beğenme</span>
+          <span className="ml-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+            {dislikes}
+          </span>
         </button>
       </div>
     </div>
