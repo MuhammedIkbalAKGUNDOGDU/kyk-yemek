@@ -15,7 +15,7 @@ const navItems = [
   { id: "home", label: "Ana Sayfa", icon: Home, href: "/" },
   { id: "monthly", label: "Aylık Menü", icon: Calendar, href: "/monthly" },
   { id: "faq", label: "Sıkça Sorulan Sorular", icon: HelpCircle, href: "/faq" },
-  { id: "upload", label: "Menü Yükle", icon: Upload, href: "#" },
+  { id: "upload", label: "Menü Yükle", icon: Upload, href: "/upload" },
   { id: "login", label: "Giriş Yap", icon: LogIn, href: "#" },
 ];
 
@@ -25,6 +25,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
   const getActiveItem = () => {
     if (pathname === "/faq") return "faq";
     if (pathname === "/monthly") return "monthly";
+    if (pathname === "/upload") return "upload";
     if (pathname === "/") return "home";
     return "home";
   };
