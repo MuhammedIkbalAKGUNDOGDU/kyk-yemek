@@ -3,10 +3,10 @@
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HelpCircle, Calendar, Upload, LogIn, User, Home } from "lucide-react";
+import { HelpCircle, Calendar, Upload, LogIn, LogOut, User, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AdBanner } from "./AdBanner";
-import { hasToken, User as UserType } from "@/lib/api";
+import { hasToken, authAPI, User as UserType } from "@/lib/api";
 
 interface SidebarProps {
   activeItem?: string;
@@ -17,7 +17,6 @@ const navItems = [
   { id: "monthly", label: "Aylık Menü", icon: Calendar, href: "/monthly" },
   { id: "faq", label: "Sıkça Sorulan Sorular", icon: HelpCircle, href: "/faq" },
   { id: "upload", label: "Menü Yükle", icon: Upload, href: "/upload" },
-  { id: "login", label: "Giriş Yap", icon: LogIn, href: "/login" },
 ];
 
 // localStorage'ı izleyen hook
@@ -52,6 +51,11 @@ export function Sidebar({ activeItem }: SidebarProps) {
   const user = useUser();
   const isLoggedIn = !!user;
   const userName = user?.fullName || null;
+
+  const handleLogout = async () => {
+    await authAPI.logout();
+    window.location.href = "/";
+  };
 
   const getActiveItem = () => {
     if (activeItem) return activeItem;
@@ -112,6 +116,32 @@ export function Sidebar({ activeItem }: SidebarProps) {
               </li>
             );
           })}
+          
+          {/* Giriş Yap / Çıkış Yap */}
+          <li>
+            {isLoggedIn ? (
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50 transition-all"
+              >
+                <LogOut className="h-4 w-4 text-red-400" />
+                Çıkış Yap
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className={cn(
+                  "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium transition-all",
+                  currentActive === "login"
+                    ? "bg-green-50 text-green-700"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                )}
+              >
+                <LogIn className={cn("h-4 w-4", currentActive === "login" ? "text-green-600" : "text-gray-400")} />
+                Giriş Yap
+              </Link>
+            )}
+          </li>
         </ul>
       </nav>
 
