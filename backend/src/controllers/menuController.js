@@ -547,17 +547,25 @@ exports.getMonthlyMenu = async (req, res) => {
       [city, parseInt(year), parseInt(month)]
     );
 
-    // Günlere göre grupla
+    // Günlere göre grupla (ID'ler dahil)
     const menusByDay = {};
     result.rows.forEach(m => {
       const day = new Date(m.date).getDate();
       if (!menusByDay[day]) {
-        menusByDay[day] = { date: m.date, breakfast: null, dinner: null };
+        menusByDay[day] = { 
+          date: m.date, 
+          breakfast: null, 
+          dinner: null,
+          breakfastId: null,
+          dinnerId: null
+        };
       }
       if (m.meal_type === 'breakfast') {
         menusByDay[day].breakfast = { items: m.items, calories: m.total_calories };
+        menusByDay[day].breakfastId = m.id;
       } else {
         menusByDay[day].dinner = { items: m.items, calories: m.total_calories };
+        menusByDay[day].dinnerId = m.id;
       }
     });
 

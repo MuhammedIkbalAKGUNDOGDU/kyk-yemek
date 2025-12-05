@@ -10,22 +10,18 @@ import { getTodayMenus, PublicMenu } from "@/lib/publicApi";
 import { Upload, AlertCircle, Coffee, Moon } from "lucide-react";
 import Link from "next/link";
 
-// PublicMenu'yu MenuCard formatına çevir
-function convertToMenuCardFormat(menu: PublicMenu) {
+// PublicMenu'yu MenuCard props'larına çevir
+function getMenuCardProps(menu: PublicMenu) {
   return {
-    id: menu.id,
+    menuId: menu.id,
     title: menu.mealType === 'breakfast' ? 'Kahvaltı' : 'Akşam Yemeği',
-    type: menu.mealType as 'breakfast' | 'dinner',
     items: menu.items.map((name, index) => ({
       id: `${menu.id}-${index}`,
       name,
-      description: '',
-      calories: 0, // Bireysel kalori yok
       likes: 0,
       dislikes: 0,
     })),
     totalCalories: menu.totalCalories,
-    comments: [],
   };
 }
 
@@ -103,7 +99,7 @@ export default function Home() {
               </p>
               <h1 className="text-2xl font-bold text-gray-900 lg:text-3xl">
                 Yemek KYK
-              </h1>
+          </h1>
               <p className="mt-1 text-sm text-green-600 font-medium">
                 {selectedCityName}
               </p>
@@ -164,8 +160,8 @@ export default function Home() {
                 </div>
                 <p className="mt-6 text-sm text-gray-400">
                   İletişim: <a href="mailto:iletisim@yemekkyk.com" className="text-green-600 hover:underline">iletisim@yemekkyk.com</a>
-                </p>
-              </div>
+          </p>
+        </div>
             )}
 
             {/* Menu Cards */}
@@ -180,7 +176,7 @@ export default function Home() {
                       </div>
                       <h2 className="text-lg font-bold text-gray-900">Kahvaltı</h2>
                     </div>
-                    <MenuCard menu={convertToMenuCardFormat(breakfastMenu)} />
+                    <MenuCard {...getMenuCardProps(breakfastMenu)} />
                   </div>
                 )}
 
@@ -193,7 +189,7 @@ export default function Home() {
                       </div>
                       <h2 className="text-lg font-bold text-gray-900">Akşam Yemeği</h2>
                     </div>
-                    <MenuCard menu={convertToMenuCardFormat(dinnerMenu)} />
+                    <MenuCard {...getMenuCardProps(dinnerMenu)} />
                   </div>
                 )}
               </div>

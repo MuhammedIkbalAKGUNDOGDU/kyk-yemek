@@ -7,8 +7,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { AdBanner } from "@/components/AdBanner";
 import { CommentModal } from "@/components/CommentModal";
 import { useCity } from "@/hooks/useCity";
-import { getMonthlyMenus, DailyMenu } from "@/lib/publicApi";
-import type { Comment } from "@/data/menus";
+import { getMonthlyMenus, DailyMenu, getCommentCount } from "@/lib/publicApi";
 import Link from "next/link";
 
 // UI için gün kartı tipi
@@ -17,15 +16,18 @@ interface DayCardData {
   dayName: string;
   breakfast: string[];
   dinner: string[];
+  breakfastId: string | null;
+  dinnerId: string | null;
 }
 
 interface DayCardProps {
   day: DayCardData;
-  onOpenComments: (day: DayCardData) => void;
-  commentCounts: Record<number, number>;
+  onOpenComments: (menuId: string, title: string) => void;
+  breakfastCommentCount: number;
+  dinnerCommentCount: number;
 }
 
-function DayCard({ day, onOpenComments, commentCounts }: DayCardProps) {
+function DayCard({ day, onOpenComments, breakfastCommentCount, dinnerCommentCount, monthName, year }: DayCardProps & { monthName: string; year: number }) {
   const hasBreakfast = day.breakfast.length > 0;
   const hasDinner = day.dinner.length > 0;
 
@@ -33,26 +35,42 @@ function DayCard({ day, onOpenComments, commentCounts }: DayCardProps) {
 
   return (
     <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
-      {/* Day Header */}
-      <div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-3">
+      {/* Day Header - Full Date */}
+      <div className="mb-4 border-b border-gray-200 pb-3">
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500 text-lg font-bold text-white">
+          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500 text-xl font-bold text-white">
             {day.date}
           </span>
-          <span className="text-sm font-medium text-gray-600">
-            {day.dayName}
-          </span>
+          <div>
+            <p className="text-base font-bold text-gray-900">
+              {day.date} {monthName} {year}
+            </p>
+            <p className="text-sm text-gray-500">
+              {day.dayName}
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Breakfast */}
       {hasBreakfast && (
         <div className="mb-4">
-          <div className="mb-2 flex items-center gap-2">
-            <Sun className="h-4 w-4 text-amber-500" />
-            <span className="text-xs font-semibold uppercase tracking-wide text-amber-600">
-              Kahvaltı
-            </span>
+          <div className="mb-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sun className="h-4 w-4 text-amber-500" />
+              <span className="text-xs font-semibold uppercase tracking-wide text-amber-600">
+                Kahvaltı
+              </span>
+            </div>
+            {day.breakfastId && (
+              <button
+                onClick={() => onOpenComments(day.breakfastId!, `${day.date} ${day.dayName} - Kahvaltı`)}
+                className="flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700 transition-colors"
+              >
+                <MessageSquare className="h-3 w-3" />
+                <span>{breakfastCommentCount}</span>
+              </button>
+            )}
           </div>
           <p className="text-sm text-gray-700 leading-relaxed">
             {day.breakfast.join(", ")}
@@ -63,11 +81,22 @@ function DayCard({ day, onOpenComments, commentCounts }: DayCardProps) {
       {/* Dinner */}
       {hasDinner && (
         <div className="mb-4">
-          <div className="mb-2 flex items-center gap-2">
-            <Moon className="h-4 w-4 text-indigo-500" />
-            <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
-              Akşam
-            </span>
+          <div className="mb-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Moon className="h-4 w-4 text-indigo-500" />
+              <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
+                Akşam
+              </span>
+            </div>
+            {day.dinnerId && (
+              <button
+                onClick={() => onOpenComments(day.dinnerId!, `${day.date} ${day.dayName} - Akşam`)}
+                className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-700 transition-colors"
+              >
+                <MessageSquare className="h-3 w-3" />
+                <span>{dinnerCommentCount}</span>
+              </button>
+            )}
           </div>
           <p className="text-sm text-gray-700 leading-relaxed">
             {day.dinner.join(", ")}
@@ -75,17 +104,33 @@ function DayCard({ day, onOpenComments, commentCounts }: DayCardProps) {
         </div>
       )}
 
-      {/* Comment Button */}
-      <button
-        onClick={() => onOpenComments(day)}
-        className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-green-600"
-      >
-        <MessageSquare className="h-4 w-4" />
-        <span>Yorumlar</span>
-        <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold">
-          {commentCounts[day.date] || 0}
-        </span>
-      </button>
+      {/* Comment Buttons Row */}
+      <div className="flex gap-2">
+        {hasBreakfast && day.breakfastId && (
+          <button
+            onClick={() => onOpenComments(day.breakfastId!, `${day.date} ${day.dayName} - Kahvaltı`)}
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-amber-500 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-amber-600"
+          >
+            <Sun className="h-3 w-3" />
+            <span>Kahvaltı Yorumları</span>
+            <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] font-semibold">
+              {breakfastCommentCount}
+            </span>
+          </button>
+        )}
+        {hasDinner && day.dinnerId && (
+          <button
+            onClick={() => onOpenComments(day.dinnerId!, `${day.date} ${day.dayName} - Akşam`)}
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-indigo-500 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-indigo-600"
+          >
+            <Moon className="h-3 w-3" />
+            <span>Akşam Yorumları</span>
+            <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] font-semibold">
+              {dinnerCommentCount}
+            </span>
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -123,8 +168,13 @@ export default function MonthlyMenuPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const [selectedDay, setSelectedDay] = useState<DayCardData | null>(null);
-  const [commentsMap, setCommentsMap] = useState<Record<number, Comment[]>>({});
+  // Comment modal state
+  const [commentModalOpen, setCommentModalOpen] = useState(false);
+  const [commentMenuId, setCommentMenuId] = useState<string | null>(null);
+  const [commentMenuTitle, setCommentMenuTitle] = useState("");
+  
+  // Comment counts
+  const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
 
   const monthNames = [
     "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
@@ -143,6 +193,18 @@ export default function MonthlyMenuPage() {
       try {
         const data = await getMonthlyMenus(selectedCity, selectedYear, selectedMonth);
         setMenuData(data);
+        
+        // Yorum sayılarını çek
+        const counts: Record<string, number> = {};
+        for (const menu of data) {
+          if (menu.breakfastId) {
+            counts[menu.breakfastId] = await getCommentCount(menu.breakfastId);
+          }
+          if (menu.dinnerId) {
+            counts[menu.dinnerId] = await getCommentCount(menu.dinnerId);
+          }
+        }
+        setCommentCounts(counts);
       } catch (err) {
         console.error('Aylık menü çekme hatası:', err);
         setError('Menüler yüklenirken bir hata oluştu');
@@ -171,33 +233,28 @@ export default function MonthlyMenuPage() {
         dayName: getDayName(selectedYear, selectedMonth, day),
         breakfast: menuForDay.breakfast?.items || [],
         dinner: menuForDay.dinner?.items || [],
+        breakfastId: menuForDay.breakfastId,
+        dinnerId: menuForDay.dinnerId,
       });
     }
   }
 
-  const handleOpenComments = (day: DayCardData) => {
-    setSelectedDay(day);
+  const handleOpenComments = (menuId: string, title: string) => {
+    setCommentMenuId(menuId);
+    setCommentMenuTitle(title);
+    setCommentModalOpen(true);
   };
 
-  const handleAddComment = (text: string) => {
-    if (!selectedDay) return;
-
-    const newComment: Comment = {
-      id: `d${selectedDay.date}c${Date.now()}`,
-      author: "Misafir",
-      text,
-      timestamp: new Date(),
-    };
-
-    setCommentsMap((prev) => ({
-      ...prev,
-      [selectedDay.date]: [...(prev[selectedDay.date] || []), newComment],
-    }));
+  const handleCloseComments = () => {
+    setCommentModalOpen(false);
+    // Yorum sayısını güncelle
+    if (commentMenuId) {
+      getCommentCount(commentMenuId).then(count => {
+        setCommentCounts(prev => ({ ...prev, [commentMenuId]: count }));
+      });
+    }
+    setCommentMenuId(null);
   };
-
-  const commentCounts = Object.fromEntries(
-    Object.entries(commentsMap).map(([date, comments]) => [date, comments.length])
-  );
 
   // Insert ads every 6 days
   const renderDaysWithAds = () => {
@@ -209,7 +266,10 @@ export default function MonthlyMenuPage() {
           key={day.date}
           day={day}
           onOpenComments={handleOpenComments}
-          commentCounts={commentCounts}
+          breakfastCommentCount={day.breakfastId ? (commentCounts[day.breakfastId] || 0) : 0}
+          dinnerCommentCount={day.dinnerId ? (commentCounts[day.dinnerId] || 0) : 0}
+          monthName={monthNames[selectedMonth - 1]}
+          year={selectedYear}
         />
       );
 
@@ -375,15 +435,12 @@ export default function MonthlyMenuPage() {
       </div>
 
       {/* Comment Modal */}
-      {selectedDay && (
-        <CommentModal
-          isOpen={!!selectedDay}
-          onClose={() => setSelectedDay(null)}
-          menuTitle={`${selectedDay.date} ${currentMonthName} - ${selectedDay.dayName}`}
-          comments={commentsMap[selectedDay.date] || []}
-          onAddComment={handleAddComment}
-        />
-      )}
+      <CommentModal
+        isOpen={commentModalOpen}
+        onClose={handleCloseComments}
+        menuTitle={commentMenuTitle}
+        menuId={commentMenuId}
+      />
     </div>
   );
 }

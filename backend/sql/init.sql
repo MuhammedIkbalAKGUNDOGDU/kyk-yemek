@@ -123,3 +123,18 @@ CREATE TABLE IF NOT EXISTS user_food_votes (
 
 CREATE INDEX IF NOT EXISTS idx_user_food_votes_user ON user_food_votes(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_food_votes_food ON user_food_votes(food_id);
+
+-- =============================================
+-- YORUMLAR TABLOSU
+-- =============================================
+CREATE TABLE IF NOT EXISTS comments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    menu_id UUID NOT NULL REFERENCES menus(id) ON DELETE CASCADE,
+    text VARCHAR(200) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_comments_menu ON comments(menu_id);
+CREATE INDEX IF NOT EXISTS idx_comments_user ON comments(user_id);
+CREATE INDEX IF NOT EXISTS idx_comments_created ON comments(created_at DESC);

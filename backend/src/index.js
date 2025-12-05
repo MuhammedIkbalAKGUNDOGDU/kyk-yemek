@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const menuRoutes = require('./routes/menu');
 const foodRoutes = require('./routes/food');
+const commentRoutes = require('./routes/comment');
 const db = require('./config/database');
 
 const app = express();
@@ -24,6 +25,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/menus', menuRoutes);
 app.use('/api/foods', foodRoutes);
+app.use('/api/comments', commentRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
