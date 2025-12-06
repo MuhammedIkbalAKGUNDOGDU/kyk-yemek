@@ -138,3 +138,36 @@ CREATE TABLE IF NOT EXISTS comments (
 CREATE INDEX IF NOT EXISTS idx_comments_menu ON comments(menu_id);
 CREATE INDEX IF NOT EXISTS idx_comments_user ON comments(user_id);
 CREATE INDEX IF NOT EXISTS idx_comments_created ON comments(created_at DESC);
+
+-- =============================================
+-- MENÜ GÖNDERİLERİ (Kullanıcılardan gelen görsel/PDF)
+-- =============================================
+DO $$ BEGIN
+    CREATE TYPE submission_status AS ENUM ('pending', 'reviewed', 'rejected');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+CREATE TABLE IF NOT EXISTS menu_submissions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    submitter_name VARCHAR(100),
+    submitter_email VARCHAR(255),
+    city_id VARCHAR(50) NOT NULL,
+    year INTEGER NOT NULL,
+    month INTEGER NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    file_type VARCHAR(50) NOT NULL,
+    file_size INTEGER NOT NULL,
+    note TEXT,
+    status submission_status DEFAULT 'pending',
+    admin_note TEXT,
+    reviewed_by UUID REFERENCES admins(id),
+    reviewed_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_menu_submissions_status ON menu_submissions(status);
+CREATE INDEX IF NOT EXISTS idx_menu_submissions_city ON menu_submissions(city_id);
+CREATE INDEX IF NOT EXISTS idx_menu_submissions_created ON menu_submissions(created_at DESC);

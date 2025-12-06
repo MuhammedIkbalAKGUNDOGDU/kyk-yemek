@@ -8,7 +8,9 @@ const adminRoutes = require('./routes/admin');
 const menuRoutes = require('./routes/menu');
 const foodRoutes = require('./routes/food');
 const commentRoutes = require('./routes/comment');
+const submissionRoutes = require('./routes/submission');
 const db = require('./config/database');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -26,6 +28,10 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/menus', menuRoutes);
 app.use('/api/foods', foodRoutes);
 app.use('/api/comments', commentRoutes);
+app.use('/api/submissions', submissionRoutes);
+
+// Static file serving for uploads (admin only erişimi için route'dan kontrol ediliyor)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Health check
 app.get('/api/health', (req, res) => {

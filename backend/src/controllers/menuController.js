@@ -185,6 +185,80 @@ exports.createMenu = async (req, res) => {
   }
 };
 
+// Güvenlik: Zararlı içerik kontrolü
+function validateMenuContent(menus) {
+  const suspiciousPatterns = [
+    /<script/i,
+    /javascript:/i,
+    /on\w+=/i,  // onclick, onerror vs
+    /eval\(/i,
+    /base64/i,
+    /data:/i,
+    /<iframe/i,
+    /<object/i,
+    /<embed/i,
+    /\\\x[0-9a-f]/i,  // hex escape
+    /\\u[0-9a-f]{4}/i,  // unicode escape
+    /document\./i,
+    /window\./i,
+    /alert\(/i,
+    /confirm\(/i,
+    /prompt\(/i,
+  ];
+
+  const errors = [];
+  
+  for (const dayMenu of menus) {
+    // day kontrolü
+    if (typeof dayMenu.day !== 'number' || dayMenu.day < 1 || dayMenu.day > 31) {
+      errors.push(`Geçersiz gün numarası: ${dayMenu.day}`);
+      continue;
+    }
+
+    // Her yemek ismini kontrol et
+    const allItems = [
+      ...(dayMenu.breakfast?.items || []),
+      ...(dayMenu.dinner?.items || [])
+    ];
+
+    for (const item of allItems) {
+      if (typeof item !== 'string') {
+        errors.push(`Gün ${dayMenu.day}: Yemek ismi string olmalı`);
+        continue;
+      }
+      
+      // Maksimum karakter uzunluğu
+      if (item.length > 100) {
+        errors.push(`Gün ${dayMenu.day}: Yemek ismi çok uzun (max 100 karakter): ${item.slice(0, 30)}...`);
+        continue;
+      }
+
+      // Zararlı içerik kontrolü
+      for (const pattern of suspiciousPatterns) {
+        if (pattern.test(item)) {
+          errors.push(`Gün ${dayMenu.day}: Zararlı içerik tespit edildi: ${item.slice(0, 30)}`);
+          break;
+        }
+      }
+
+      // Sadece izin verilen karakterler (Türkçe harfler, sayılar, bazı noktalama)
+      if (!/^[a-zA-ZğüşıöçĞÜŞİÖÇ0-9\s.,'\-()\/]+$/.test(item)) {
+        errors.push(`Gün ${dayMenu.day}: Geçersiz karakter içeren yemek: ${item}`);
+      }
+    }
+
+    // Kalori kontrolü
+    if (dayMenu.breakfast?.calories && (typeof dayMenu.breakfast.calories !== 'number' || dayMenu.breakfast.calories < 0 || dayMenu.breakfast.calories > 10000)) {
+      errors.push(`Gün ${dayMenu.day}: Kahvaltı kalori değeri geçersiz`);
+    }
+    if (dayMenu.dinner?.calories && (typeof dayMenu.dinner.calories !== 'number' || dayMenu.dinner.calories < 0 || dayMenu.dinner.calories > 10000)) {
+      errors.push(`Gün ${dayMenu.day}: Akşam yemeği kalori değeri geçersiz`);
+    }
+  }
+
+  return errors;
+}
+
 // TOPLU MENÜ YÜKLEME (JSON)
 exports.bulkUpload = async (req, res) => {
   try {
@@ -193,6 +267,20 @@ exports.bulkUpload = async (req, res) => {
 
     if (!city || !year || !month || !menus || !Array.isArray(menus)) {
       return res.status(400).json({ error: 'Geçersiz veri formatı' });
+    }
+
+    // Maksimum menü sayısı kontrolü (31 gün)
+    if (menus.length > 31) {
+      return res.status(400).json({ error: 'Maksimum 31 günlük menü yüklenebilir' });
+    }
+
+    // Güvenlik kontrolü
+    const securityErrors = validateMenuContent(menus);
+    if (securityErrors.length > 0) {
+      return res.status(400).json({ 
+        error: 'Güvenlik kontrolü başarısız', 
+        details: securityErrors.slice(0, 10) // İlk 10 hata
+      });
     }
 
     const results = {

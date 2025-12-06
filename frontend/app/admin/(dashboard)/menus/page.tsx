@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 import {
-  Search,
-  Filter,
   ChevronLeft,
   ChevronRight,
   Check,
@@ -14,10 +12,138 @@ import {
   Calendar,
   MapPin,
   Utensils,
+  X,
+  User,
+  Clock,
+  Flame,
 } from "lucide-react";
 import { menuAPI, Menu } from "@/lib/adminApi";
 import { cities } from "@/data/menus";
 import { cn } from "@/lib/utils";
+
+// Menü detay modalı
+function MenuDetailModal({ menu, onClose }: { menu: Menu; onClose: () => void }) {
+  const cityName = cities.find(c => c.id === menu.cityId)?.name || menu.cityId;
+  
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString("tr-TR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      weekday: "long"
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      
+      {/* Modal */}
+      <div className="relative w-full max-w-lg rounded-2xl bg-slate-800 border border-slate-700 shadow-xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-slate-700">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Menü Detayı</h2>
+            <p className="text-sm text-slate-400 mt-1">{formatDate(menu.date)}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg text-slate-400 hover:bg-slate-700 hover:text-white transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-6">
+          {/* Info Grid */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="rounded-xl bg-slate-700/50 p-4">
+              <div className="flex items-center gap-2 text-slate-400 text-sm mb-1">
+                <MapPin className="h-4 w-4" />
+                Şehir
+              </div>
+              <p className="text-white font-medium">{cityName}</p>
+            </div>
+            <div className="rounded-xl bg-slate-700/50 p-4">
+              <div className="flex items-center gap-2 text-slate-400 text-sm mb-1">
+                <Utensils className="h-4 w-4" />
+                Öğün
+              </div>
+              <p className="text-white font-medium">
+                {menu.mealType === "breakfast" ? "Kahvaltı" : "Akşam Yemeği"}
+              </p>
+            </div>
+            <div className="rounded-xl bg-slate-700/50 p-4">
+              <div className="flex items-center gap-2 text-slate-400 text-sm mb-1">
+                <Flame className="h-4 w-4" />
+                Kalori
+              </div>
+              <p className="text-white font-medium">{menu.totalCalories} kcal</p>
+            </div>
+            <div className="rounded-xl bg-slate-700/50 p-4">
+              <div className="flex items-center gap-2 text-slate-400 text-sm mb-1">
+                {menu.status === "published" ? <FileCheck className="h-4 w-4" /> : <FileClock className="h-4 w-4" />}
+                Durum
+              </div>
+              <p className={cn(
+                "font-medium",
+                menu.status === "published" ? "text-emerald-400" : "text-amber-400"
+              )}>
+                {menu.status === "published" ? "Yayında" : "Taslak"}
+              </p>
+            </div>
+          </div>
+
+          {/* Items */}
+          <div>
+            <h3 className="text-sm font-medium text-slate-300 mb-3">Yemekler</h3>
+            <div className="flex flex-wrap gap-2">
+              {menu.items.map((item, i) => (
+                <span
+                  key={i}
+                  className={cn(
+                    "px-3 py-1.5 rounded-lg text-sm",
+                    menu.mealType === "breakfast"
+                      ? "bg-amber-500/10 text-amber-300"
+                      : "bg-blue-500/10 text-blue-300"
+                  )}
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Meta */}
+          <div className="pt-4 border-t border-slate-700 space-y-2">
+            {menu.createdBy && (
+              <div className="flex items-center gap-2 text-sm text-slate-400">
+                <User className="h-4 w-4" />
+                <span>Oluşturan: {menu.createdBy}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-2 text-sm text-slate-400">
+              <Clock className="h-4 w-4" />
+              <span>
+                Oluşturulma: {new Date(menu.createdAt).toLocaleString("tr-TR")}
+              </span>
+            </div>
+            {menu.publishedAt && (
+              <div className="flex items-center gap-2 text-sm text-slate-400">
+                <FileCheck className="h-4 w-4" />
+                <span>
+                  Yayınlanma: {new Date(menu.publishedAt).toLocaleString("tr-TR")}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminMenusPage() {
   const [menus, setMenus] = useState<Menu[]>([]);
@@ -28,6 +154,9 @@ export default function AdminMenusPage() {
     total: 0,
     totalPages: 0,
   });
+  
+  // Modal state
+  const [selectedMenu, setSelectedMenu] = useState<Menu | null>(null);
 
   // Filters
   const [selectedCity, setSelectedCity] = useState("");
@@ -38,6 +167,9 @@ export default function AdminMenusPage() {
   // Selection
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isPublishing, setIsPublishing] = useState(false);
+
+  // Stats
+  const [stats, setStats] = useState({ draft: 0, published: 0, total: 0 });
 
   const fetchMenus = async () => {
     setIsLoading(true);
@@ -52,6 +184,15 @@ export default function AdminMenusPage() {
       });
       setMenus(response.menus);
       setPagination(response.pagination);
+      
+      // Stats hesapla
+      const draftCount = response.menus.filter(m => m.status === "draft").length;
+      const publishedCount = response.menus.filter(m => m.status === "published").length;
+      setStats({
+        draft: draftCount,
+        published: publishedCount,
+        total: response.pagination.total
+      });
     } catch (error) {
       console.error("Fetch menus error:", error);
     } finally {
@@ -180,6 +321,43 @@ export default function AdminMenusPage() {
             {selectedIds.length} menüyü yayınla
           </button>
         )}
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="rounded-xl bg-slate-800/50 border border-slate-700 p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-600/50">
+              <Calendar className="h-5 w-5 text-slate-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-white">{stats.total}</p>
+              <p className="text-sm text-slate-400">Toplam Menü</p>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/20">
+              <FileClock className="h-5 w-5 text-amber-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-amber-400">{stats.draft}</p>
+              <p className="text-sm text-amber-400/70">Taslak</p>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/20">
+              <FileCheck className="h-5 w-5 text-emerald-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-emerald-400">{stats.published}</p>
+              <p className="text-sm text-emerald-400/70">Yayında</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Filters */}
@@ -346,7 +524,15 @@ export default function AdminMenusPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1">
+                        {/* Detay */}
+                        <button
+                          onClick={() => setSelectedMenu(menu)}
+                          className="p-2 rounded-lg text-slate-400 hover:bg-slate-700 hover:text-white transition-colors"
+                          title="Detay"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
                         {menu.status === "draft" && (
                           <>
                             <button
@@ -402,6 +588,14 @@ export default function AdminMenusPage() {
           </div>
         )}
       </div>
+
+      {/* Menu Detail Modal */}
+      {selectedMenu && (
+        <MenuDetailModal
+          menu={selectedMenu}
+          onClose={() => setSelectedMenu(null)}
+        />
+      )}
     </div>
   );
 }

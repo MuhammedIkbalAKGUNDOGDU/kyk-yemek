@@ -13,6 +13,7 @@ import {
   X,
   Shield,
   ChevronRight,
+  Inbox,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { adminAuthAPI, hasAdminToken, getStoredAdmin } from "@/lib/adminApi";
@@ -25,8 +26,9 @@ interface AdminUser {
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
+  { id: "submissions", label: "Gönderiler", icon: Inbox, href: "/admin/submissions" },
   { id: "menus", label: "Menüler", icon: UtensilsCrossed, href: "/admin/menus" },
-  { id: "upload", label: "Menü Yükle", icon: Upload, href: "/admin/upload" },
+  { id: "upload", label: "JSON Yükle", icon: Upload, href: "/admin/upload" },
   { id: "foods", label: "Yemekler", icon: Salad, href: "/admin/foods" },
 ];
 
@@ -75,6 +77,7 @@ export default function AdminDashboardLayout({
 
   const getActiveItem = () => {
     if (pathname === "/admin") return "dashboard";
+    if (pathname?.startsWith("/admin/submissions")) return "submissions";
     if (pathname?.startsWith("/admin/menus")) return "menus";
     if (pathname?.startsWith("/admin/upload")) return "upload";
     if (pathname?.startsWith("/admin/foods")) return "foods";
