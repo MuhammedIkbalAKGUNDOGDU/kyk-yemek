@@ -10,28 +10,34 @@ import { useCity } from "@/hooks/useCity";
 import { getMonthlyMenus, DailyMenu, getCommentCount } from "@/lib/publicApi";
 import Link from "next/link";
 
-// UI için gün kartı tipi
-interface DayCardData {
-  date: number;
-  dayName: string;
-  breakfast: string[];
-  dinner: string[];
-  breakfastId: string | null;
-  dinnerId: string | null;
-}
-
 interface DayCardProps {
-  day: DayCardData;
+  menu: DailyMenu;
   onOpenComments: (menuId: string, title: string) => void;
   breakfastCommentCount: number;
   dinnerCommentCount: number;
 }
 
-function DayCard({ day, onOpenComments, breakfastCommentCount, dinnerCommentCount, monthName, year }: DayCardProps & { monthName: string; year: number }) {
-  const hasBreakfast = day.breakfast.length > 0;
-  const hasDinner = day.dinner.length > 0;
+// Tarihi formatla
+function formatDate(dateStr: string): { day: number; dayName: string; fullDate: string } {
+  const dateParts = dateStr.split('T')[0].split('-');
+  const year = parseInt(dateParts[0], 10);
+  const month = parseInt(dateParts[1], 10) - 1;
+  const day = parseInt(dateParts[2], 10);
+  
+  const date = new Date(year, month, day);
+  const dayName = date.toLocaleDateString('tr-TR', { weekday: 'long' });
+  const fullDate = date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+  
+  return { day, dayName, fullDate };
+}
+
+function DayCard({ menu, onOpenComments, breakfastCommentCount, dinnerCommentCount }: DayCardProps) {
+  const hasBreakfast = menu.breakfast && menu.breakfast.items.length > 0;
+  const hasDinner = menu.dinner && menu.dinner.items.length > 0;
 
   if (!hasBreakfast && !hasDinner) return null;
+
+  const { day, dayName, fullDate } = formatDate(menu.date);
 
   return (
     <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
@@ -39,14 +45,14 @@ function DayCard({ day, onOpenComments, breakfastCommentCount, dinnerCommentCoun
       <div className="mb-4 border-b border-gray-200 pb-3">
         <div className="flex items-center gap-3">
           <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500 text-xl font-bold text-white">
-            {day.date}
+            {day}
           </span>
           <div>
             <p className="text-base font-bold text-gray-900">
-              {day.date} {monthName} {year}
+              {fullDate}
             </p>
             <p className="text-sm text-gray-500">
-              {day.dayName}
+              {dayName}
             </p>
           </div>
         </div>
@@ -62,9 +68,9 @@ function DayCard({ day, onOpenComments, breakfastCommentCount, dinnerCommentCoun
                 Kahvaltı
               </span>
             </div>
-            {day.breakfastId && (
+            {menu.breakfastId && (
               <button
-                onClick={() => onOpenComments(day.breakfastId!, `${day.date} ${day.dayName} - Kahvaltı`)}
+                onClick={() => onOpenComments(menu.breakfastId!, `${fullDate} - Kahvaltı`)}
                 className="flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700 transition-colors"
               >
                 <MessageSquare className="h-3 w-3" />
@@ -73,7 +79,7 @@ function DayCard({ day, onOpenComments, breakfastCommentCount, dinnerCommentCoun
             )}
           </div>
           <p className="text-sm text-gray-700 leading-relaxed">
-            {day.breakfast.join(", ")}
+            {menu.breakfast!.items.join(", ")}
           </p>
         </div>
       )}
@@ -88,9 +94,9 @@ function DayCard({ day, onOpenComments, breakfastCommentCount, dinnerCommentCoun
                 Akşam
               </span>
             </div>
-            {day.dinnerId && (
+            {menu.dinnerId && (
               <button
-                onClick={() => onOpenComments(day.dinnerId!, `${day.date} ${day.dayName} - Akşam`)}
+                onClick={() => onOpenComments(menu.dinnerId!, `${fullDate} - Akşam`)}
                 className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-700 transition-colors"
               >
                 <MessageSquare className="h-3 w-3" />
@@ -99,16 +105,16 @@ function DayCard({ day, onOpenComments, breakfastCommentCount, dinnerCommentCoun
             )}
           </div>
           <p className="text-sm text-gray-700 leading-relaxed">
-            {day.dinner.join(", ")}
+            {menu.dinner!.items.join(", ")}
           </p>
         </div>
       )}
 
       {/* Comment Buttons Row */}
       <div className="flex gap-2">
-        {hasBreakfast && day.breakfastId && (
+        {hasBreakfast && menu.breakfastId && (
           <button
-            onClick={() => onOpenComments(day.breakfastId!, `${day.date} ${day.dayName} - Kahvaltı`)}
+            onClick={() => onOpenComments(menu.breakfastId!, `${fullDate} - Kahvaltı`)}
             className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-amber-500 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-amber-600"
           >
             <Sun className="h-3 w-3" />
@@ -118,9 +124,9 @@ function DayCard({ day, onOpenComments, breakfastCommentCount, dinnerCommentCoun
             </span>
           </button>
         )}
-        {hasDinner && day.dinnerId && (
+        {hasDinner && menu.dinnerId && (
           <button
-            onClick={() => onOpenComments(day.dinnerId!, `${day.date} ${day.dayName} - Akşam`)}
+            onClick={() => onOpenComments(menu.dinnerId!, `${fullDate} - Akşam`)}
             className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-indigo-500 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-indigo-600"
           >
             <Moon className="h-3 w-3" />
@@ -144,17 +150,6 @@ function InlineAd() {
       </div>
     </div>
   );
-}
-
-// Gün isimlerini al
-function getDayName(year: number, month: number, day: number): string {
-  const date = new Date(year, month - 1, day);
-  return date.toLocaleDateString('tr-TR', { weekday: 'long' });
-}
-
-// Aydaki gün sayısını al
-function getDaysInMonth(year: number, month: number): number {
-  return new Date(year, month, 0).getDate();
 }
 
 export default function MonthlyMenuPage() {
@@ -192,11 +187,19 @@ export default function MonthlyMenuPage() {
       setError(null);
       try {
         const data = await getMonthlyMenus(selectedCity, selectedYear, selectedMonth);
-        setMenuData(data);
+        
+        // Tarihe göre sırala
+        const sortedData = [...data].sort((a, b) => {
+          const dateA = a.date.split('T')[0];
+          const dateB = b.date.split('T')[0];
+          return dateA.localeCompare(dateB);
+        });
+        
+        setMenuData(sortedData);
         
         // Yorum sayılarını çek
         const counts: Record<string, number> = {};
-        for (const menu of data) {
+        for (const menu of sortedData) {
           if (menu.breakfastId) {
             counts[menu.breakfastId] = await getCommentCount(menu.breakfastId);
           }
@@ -217,28 +220,6 @@ export default function MonthlyMenuPage() {
     fetchMenus();
   }, [selectedCity, selectedYear, selectedMonth, isLoaded]);
 
-  // API verisini gün kartlarına dönüştür
-  const dayCards: DayCardData[] = [];
-  const daysInMonth = getDaysInMonth(selectedYear, selectedMonth);
-  
-  for (let day = 1; day <= daysInMonth; day++) {
-    const menuForDay = menuData.find(m => {
-      const menuDate = new Date(m.date);
-      return menuDate.getDate() === day;
-    });
-
-    if (menuForDay) {
-      dayCards.push({
-        date: day,
-        dayName: getDayName(selectedYear, selectedMonth, day),
-        breakfast: menuForDay.breakfast?.items || [],
-        dinner: menuForDay.dinner?.items || [],
-        breakfastId: menuForDay.breakfastId,
-        dinnerId: menuForDay.dinnerId,
-      });
-    }
-  }
-
   const handleOpenComments = (menuId: string, title: string) => {
     setCommentMenuId(menuId);
     setCommentMenuTitle(title);
@@ -256,25 +237,23 @@ export default function MonthlyMenuPage() {
     setCommentMenuId(null);
   };
 
-  // Insert ads every 6 days
-  const renderDaysWithAds = () => {
+  // Menüleri render et (her 6 menüde bir reklam)
+  const renderMenusWithAds = () => {
     const elements: React.ReactNode[] = [];
     
-    dayCards.forEach((day, index) => {
+    menuData.forEach((menu, index) => {
       elements.push(
         <DayCard
-          key={day.date}
-          day={day}
+          key={`${menu.date}-${index}`}
+          menu={menu}
           onOpenComments={handleOpenComments}
-          breakfastCommentCount={day.breakfastId ? (commentCounts[day.breakfastId] || 0) : 0}
-          dinnerCommentCount={day.dinnerId ? (commentCounts[day.dinnerId] || 0) : 0}
-          monthName={monthNames[selectedMonth - 1]}
-          year={selectedYear}
+          breakfastCommentCount={menu.breakfastId ? (commentCounts[menu.breakfastId] || 0) : 0}
+          dinnerCommentCount={menu.dinnerId ? (commentCounts[menu.dinnerId] || 0) : 0}
         />
       );
 
-      // Add ad after every 6 days
-      if ((index + 1) % 6 === 0 && index < dayCards.length - 1) {
+      // Add ad after every 6 menus
+      if ((index + 1) % 6 === 0 && index < menuData.length - 1) {
         elements.push(<InlineAd key={`ad-${index}`} />);
       }
     });
@@ -378,7 +357,7 @@ export default function MonthlyMenuPage() {
             )}
 
             {/* No Menu State */}
-            {!isLoading && !error && dayCards.length === 0 && (
+            {!isLoading && !error && menuData.length === 0 && (
               <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-white p-8 lg:p-12 text-center">
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center mx-auto mb-6">
                   <span className="text-4xl">📅</span>
@@ -406,12 +385,12 @@ export default function MonthlyMenuPage() {
             )}
 
             {/* Monthly Menu Card */}
-            {!isLoading && !error && dayCards.length > 0 && (
+            {!isLoading && !error && menuData.length > 0 && (
               <>
                 <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
                   {/* Grid - 2 days per row */}
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    {renderDaysWithAds()}
+                    {renderMenusWithAds()}
                   </div>
                 </div>
 

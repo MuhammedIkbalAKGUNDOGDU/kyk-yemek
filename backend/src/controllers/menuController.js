@@ -511,14 +511,26 @@ exports.getPublicMenus = async (req, res) => {
     const result = await db.query(query, params);
 
     res.json({
-      menus: result.rows.map(m => ({
-        id: m.id,
-        cityId: m.city_id,
-        date: m.date,
-        mealType: m.meal_type,
-        items: m.items,
-        totalCalories: m.total_calories
-      }))
+      menus: result.rows.map(m => {
+        // Tarihi düzgün formatta döndür (YYYY-MM-DD) - timezone sorunlarını önle
+        let dateStr;
+        if (m.date instanceof Date) {
+          const year = m.date.getFullYear();
+          const month = String(m.date.getMonth() + 1).padStart(2, '0');
+          const day = String(m.date.getDate()).padStart(2, '0');
+          dateStr = `${year}-${month}-${day}`;
+        } else {
+          dateStr = String(m.date).split('T')[0];
+        }
+        return {
+          id: m.id,
+          cityId: m.city_id,
+          date: dateStr,
+          mealType: m.meal_type,
+          items: m.items,
+          totalCalories: m.total_calories
+        };
+      })
     });
 
   } catch (error) {
@@ -549,11 +561,27 @@ exports.getMonthlyMenu = async (req, res) => {
 
     // Günlere göre grupla (ID'ler dahil)
     const menusByDay = {};
+    
     result.rows.forEach(m => {
-      const day = new Date(m.date).getDate();
-      if (!menusByDay[day]) {
-        menusByDay[day] = { 
-          date: m.date, 
+      // PostgreSQL DATE tipini doğru parse et
+      // Timezone sorunlarını önlemek için yerel tarih kullan
+      let dateStr;
+      if (m.date instanceof Date) {
+        // Date objesinden yerel tarih al
+        const year = m.date.getFullYear();
+        const month = String(m.date.getMonth() + 1).padStart(2, '0');
+        const day = String(m.date.getDate()).padStart(2, '0');
+        dateStr = `${year}-${month}-${day}`;
+      } else {
+        // Zaten string ise direkt kullan
+        dateStr = String(m.date).split('T')[0];
+      }
+      
+      const dayNum = parseInt(dateStr.split('-')[2], 10);
+      
+      if (!menusByDay[dayNum]) {
+        menusByDay[dayNum] = { 
+          date: dateStr,
           breakfast: null, 
           dinner: null,
           breakfastId: null,
@@ -561,11 +589,11 @@ exports.getMonthlyMenu = async (req, res) => {
         };
       }
       if (m.meal_type === 'breakfast') {
-        menusByDay[day].breakfast = { items: m.items, calories: m.total_calories };
-        menusByDay[day].breakfastId = m.id;
+        menusByDay[dayNum].breakfast = { items: m.items, calories: m.total_calories };
+        menusByDay[dayNum].breakfastId = m.id;
       } else {
-        menusByDay[day].dinner = { items: m.items, calories: m.total_calories };
-        menusByDay[day].dinnerId = m.id;
+        menusByDay[dayNum].dinner = { items: m.items, calories: m.total_calories };
+        menusByDay[dayNum].dinnerId = m.id;
       }
     });
 
