@@ -13,17 +13,23 @@ interface CommentModalProps {
   menuId: string | null;
 }
 
-// Avatar emojileri
-const avatarEmojis: Record<string, string> = {
-  avatar1: "😊",
-  avatar2: "😎",
-  avatar3: "🤓",
-  avatar4: "😇",
-  avatar5: "🥳",
-  avatar6: "😋",
-  avatar7: "🤗",
-  avatar8: "😺",
+// Avatar emojileri ve arka planları - Profile sayfasıyla aynı
+const avatarOptions: Record<string, { emoji: string; bg: string }> = {
+  avatar1: { emoji: "😊", bg: "from-yellow-400 to-orange-500" },
+  avatar2: { emoji: "🍕", bg: "from-red-400 to-pink-500" },
+  avatar3: { emoji: "🍔", bg: "from-amber-400 to-orange-500" },
+  avatar4: { emoji: "🍜", bg: "from-green-400 to-emerald-500" },
+  avatar5: { emoji: "🍣", bg: "from-pink-400 to-rose-500" },
+  avatar6: { emoji: "🥗", bg: "from-lime-400 to-green-500" },
+  avatar7: { emoji: "🍰", bg: "from-purple-400 to-violet-500" },
+  avatar8: { emoji: "☕", bg: "from-amber-600 to-yellow-700" },
+  avatar9: { emoji: "🧑‍🍳", bg: "from-blue-400 to-cyan-500" },
+  avatar10: { emoji: "🎓", bg: "from-indigo-400 to-purple-500" },
+  avatar11: { emoji: "🏠", bg: "from-teal-400 to-emerald-500" },
+  avatar12: { emoji: "⭐", bg: "from-yellow-400 to-amber-500" },
 };
+
+const defaultAvatar = { emoji: "😊", bg: "from-yellow-400 to-orange-500" };
 
 function formatTimeAgo(dateStr: string): string {
   const date = new Date(dateStr);
@@ -48,7 +54,7 @@ export function CommentModal({ isOpen, onClose, menuTitle, menuId }: CommentModa
   const [deletingId, setDeletingId] = useState<string | null>(null);
   
   // Kullanıcı bilgisi
-  const [currentUser, setCurrentUser] = useState<{ nickname: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ nickname: string; avatarId: string } | null>(null);
 
   // Giriş durumu ve kullanıcı bilgisini kontrol et
   useEffect(() => {
@@ -57,7 +63,7 @@ export function CommentModal({ isOpen, onClose, menuTitle, menuId }: CommentModa
       if (userStr) {
         try {
           const user = JSON.parse(userStr);
-          setCurrentUser(user);
+          setCurrentUser({ nickname: user.nickname, avatarId: user.avatarId || 'avatar1' });
         } catch {
           setCurrentUser(null);
         }
@@ -163,14 +169,16 @@ export function CommentModal({ isOpen, onClose, menuTitle, menuId }: CommentModa
                   Henüz yorum yapılmamış. İlk yorumu sen yap!
                 </p>
               ) : (
-                comments.map((comment) => (
+                comments.map((comment) => {
+                  const avatar = avatarOptions[comment.avatarId] || defaultAvatar;
+                  return (
                   <div
                     key={comment.id}
                     className="flex gap-4 rounded-xl bg-gray-50 p-4 group"
                   >
                     {/* Avatar */}
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-green-100 to-emerald-100 text-xl">
-                      {avatarEmojis[comment.avatarId] || "😊"}
+                    <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${avatar.bg} text-xl shadow-sm`}>
+                      {avatar.emoji}
                     </div>
 
                     {/* Content */}
@@ -206,7 +214,8 @@ export function CommentModal({ isOpen, onClose, menuTitle, menuId }: CommentModa
                       </p>
                     </div>
                   </div>
-                ))
+                  );
+                })
               )}
             </div>
 
@@ -232,9 +241,14 @@ export function CommentModal({ isOpen, onClose, menuTitle, menuId }: CommentModa
             {isLoggedIn && (
               <form onSubmit={handleSubmit} className="border-t border-gray-100 pt-6">
                 <div className="flex gap-3">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-green-100 to-emerald-100 text-xl">
-                    {currentUser ? avatarEmojis[currentUser.nickname] || "😊" : "😊"}
-                  </div>
+                  {(() => {
+                    const userAvatar = currentUser ? avatarOptions[currentUser.avatarId] || defaultAvatar : defaultAvatar;
+                    return (
+                      <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${userAvatar.bg} text-xl shadow-sm`}>
+                        {userAvatar.emoji}
+                      </div>
+                    );
+                  })()}
                   <div className="flex-1">
                     <div className="relative">
                       <input
