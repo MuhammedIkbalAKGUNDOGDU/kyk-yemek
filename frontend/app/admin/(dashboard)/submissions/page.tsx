@@ -152,6 +152,35 @@ export default function AdminSubmissionsPage() {
     }
   };
 
+  const handleDownloadFile = async (submission: Submission) => {
+    try {
+      const token = getAdminToken();
+      const response = await fetch(`${API_URL}/submissions/admin/${submission.id}/file`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        alert('Dosya indirilemedi');
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = submission.fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('Dosya indirilemedi');
+    }
+  };
+
   const closeModal = () => {
     setSelectedSubmission(null);
     if (previewUrl) {
@@ -415,6 +444,13 @@ export default function AdminSubmissionsPage() {
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
+                          onClick={() => handleDownloadFile(submission)}
+                          className="p-2 rounded-lg text-slate-400 hover:bg-emerald-500/10 hover:text-emerald-400 transition-colors"
+                          title="İndir"
+                        >
+                          <Download className="h-4 w-4" />
+                        </button>
+                        <button
                           onClick={() => handleDelete(submission.id)}
                           className="p-2 rounded-lg text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-colors"
                           title="Sil"
@@ -486,29 +522,58 @@ export default function AdminSubmissionsPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* File Preview */}
                 <div>
-                  <h3 className="text-sm font-medium text-slate-300 mb-3">Dosya Önizleme</h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-medium text-slate-300">Dosya Önizleme</h3>
+                    <button
+                      onClick={() => handleDownloadFile(selectedSubmission)}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors text-sm"
+                    >
+                      <Download className="h-4 w-4" />
+                      İndir
+                    </button>
+                  </div>
                   <div className="rounded-xl border border-slate-700 bg-slate-900 overflow-hidden">
                     {previewUrl ? (
                       selectedSubmission.fileType === 'application/pdf' ? (
                         <div className="p-8 text-center">
                           <FileText className="h-16 w-16 mx-auto text-red-400 mb-4" />
                           <p className="text-slate-300 mb-4">{selectedSubmission.fileName}</p>
-                          <a
-                            href={previewUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-700 text-white hover:bg-slate-600 transition-colors"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            PDF'i Aç
-                          </a>
+                          <div className="flex items-center justify-center gap-2">
+                            <a
+                              href={previewUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-700 text-white hover:bg-slate-600 transition-colors"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                              PDF'i Aç
+                            </a>
+                            <button
+                              onClick={() => handleDownloadFile(selectedSubmission)}
+                              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-colors"
+                            >
+                              <Download className="h-4 w-4" />
+                              İndir
+                            </button>
+                          </div>
                         </div>
                       ) : (
-                        <img
-                          src={previewUrl}
-                          alt="Preview"
-                          className="w-full h-auto max-h-[400px] object-contain"
-                        />
+                        <div className="relative">
+                          <img
+                            src={previewUrl}
+                            alt="Preview"
+                            className="w-full h-auto max-h-[400px] object-contain"
+                          />
+                          <div className="absolute top-2 right-2">
+                            <button
+                              onClick={() => handleDownloadFile(selectedSubmission)}
+                              className="p-2 rounded-lg bg-slate-800/90 text-white hover:bg-slate-700 transition-colors shadow-lg"
+                              title="İndir"
+                            >
+                              <Download className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
                       )
                     ) : (
                       <div className="p-8 text-center">
