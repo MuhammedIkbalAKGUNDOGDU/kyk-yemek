@@ -18,7 +18,8 @@ import {
   Mail,
   UserCircle,
   Lock,
-  AlertCircle
+  AlertCircle,
+  Utensils
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
@@ -26,7 +27,7 @@ import { AdBanner } from "@/components/AdBanner";
 import { useCity } from "@/hooks/useCity";
 import { cities } from "@/data/menus";
 import { cn } from "@/lib/utils";
-import { authAPI, hasToken, removeToken, User as UserType } from "@/lib/api";
+import { authAPI, hasToken, removeToken, User as UserType, UserComment, UserVote } from "@/lib/api";
 
 // Seçilebilir avatarlar
 const avatarOptions = [
@@ -465,7 +466,7 @@ function LoginRequired() {
 export default function ProfilePage() {
   const router = useRouter();
   const { selectedCity, selectedCityName, setSelectedCity, isLoaded } = useCity();
-  const [activeTab, setActiveTab] = useState<"comments" | "settings">("comments");
+  const [activeTab, setActiveTab] = useState<"comments" | "likes" | "dislikes" | "settings">("comments");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   
@@ -473,6 +474,12 @@ export default function ProfilePage() {
   const [user, setUser] = useState<UserType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  // User activity data
+  const [comments, setComments] = useState<UserComment[]>([]);
+  const [likes, setLikes] = useState<UserVote[]>([]);
+  const [dislikes, setDislikes] = useState<UserVote[]>([]);
+  const [stats, setStats] = useState({ commentCount: 0, likeCount: 0, dislikeCount: 0 });
   
   // Modal states
   const [isSaving, setIsSaving] = useState(false);
@@ -482,7 +489,7 @@ export default function ProfilePage() {
 
   // Fetch user data on mount
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserData = async () => {
       if (!hasToken()) {
         setIsLoading(false);
         setIsAuthenticated(false);
@@ -490,9 +497,22 @@ export default function ProfilePage() {
       }
 
       try {
-        const response = await authAPI.getMe();
-        setUser(response.user);
+        // Fetch user info
+        const userResponse = await authAPI.getMe();
+        setUser(userResponse.user);
         setIsAuthenticated(true);
+
+        // Fetch stats, comments, and votes in parallel
+        const [statsResponse, commentsResponse, votesResponse] = await Promise.all([
+          authAPI.getMyStats(),
+          authAPI.getMyComments(),
+          authAPI.getMyVotes(),
+        ]);
+
+        setStats(statsResponse);
+        setComments(commentsResponse.comments);
+        setLikes(votesResponse.likes);
+        setDislikes(votesResponse.dislikes);
       } catch (error) {
         console.error("Failed to fetch user:", error);
         removeToken();
@@ -502,10 +522,10 @@ export default function ProfilePage() {
       }
     };
 
-    fetchUser();
+    fetchUserData();
   }, []);
 
-  const handleSaveProfile = async (data: { fullName: string; nickname: string; email: string; cityId: string; avatarId: string }) => {
+  const handleSaveProfile = async (data: { fullName: string; nickname: string; cityId: string; avatarId: string }) => {
     setIsSaving(true);
     setSaveError(null);
 
@@ -627,34 +647,52 @@ export default function ProfilePage() {
                 </button>
               </div>
 
-              {/* Stats - Şimdilik sabit değerler */}
+              {/* Stats */}
               <div className="mt-6 grid grid-cols-3 gap-4">
-                <div className="rounded-xl bg-gray-50 p-4 text-center">
+                <button
+                  onClick={() => setActiveTab("comments")}
+                  className={cn(
+                    "rounded-xl p-4 text-center transition-colors",
+                    activeTab === "comments" ? "bg-green-50 ring-2 ring-green-500" : "bg-gray-50 hover:bg-gray-100"
+                  )}
+                >
                   <div className="flex items-center justify-center gap-2 text-2xl font-bold text-gray-900">
                     <MessageSquare className="h-5 w-5 text-green-500" />
-                    0
+                    {stats.commentCount}
                   </div>
                   <p className="text-sm text-gray-500 mt-1">Yorum</p>
-                </div>
-                <div className="rounded-xl bg-gray-50 p-4 text-center">
+                </button>
+                <button
+                  onClick={() => setActiveTab("likes")}
+                  className={cn(
+                    "rounded-xl p-4 text-center transition-colors",
+                    activeTab === "likes" ? "bg-green-50 ring-2 ring-green-500" : "bg-gray-50 hover:bg-gray-100"
+                  )}
+                >
                   <div className="flex items-center justify-center gap-2 text-2xl font-bold text-gray-900">
                     <ThumbsUp className="h-5 w-5 text-green-500" />
-                    0
+                    {stats.likeCount}
                   </div>
                   <p className="text-sm text-gray-500 mt-1">Beğeni</p>
-                </div>
-                <div className="rounded-xl bg-gray-50 p-4 text-center">
+                </button>
+                <button
+                  onClick={() => setActiveTab("dislikes")}
+                  className={cn(
+                    "rounded-xl p-4 text-center transition-colors",
+                    activeTab === "dislikes" ? "bg-red-50 ring-2 ring-red-400" : "bg-gray-50 hover:bg-gray-100"
+                  )}
+                >
                   <div className="flex items-center justify-center gap-2 text-2xl font-bold text-gray-900">
                     <ThumbsDown className="h-5 w-5 text-red-400" />
-                    0
+                    {stats.dislikeCount}
                   </div>
                   <p className="text-sm text-gray-500 mt-1">Beğenmeme</p>
-                </div>
+                </button>
               </div>
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2 mb-6">
+            <div className="flex flex-wrap gap-2 mb-6">
               <button
                 onClick={() => setActiveTab("comments")}
                 className={cn(
@@ -666,6 +704,30 @@ export default function ProfilePage() {
               >
                 <MessageSquare className="h-4 w-4" />
                 Yorumlarım
+              </button>
+              <button
+                onClick={() => setActiveTab("likes")}
+                className={cn(
+                  "flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-colors",
+                  activeTab === "likes"
+                    ? "bg-green-500 text-white"
+                    : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+                )}
+              >
+                <ThumbsUp className="h-4 w-4" />
+                Beğendiklerim
+              </button>
+              <button
+                onClick={() => setActiveTab("dislikes")}
+                className={cn(
+                  "flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-colors",
+                  activeTab === "dislikes"
+                    ? "bg-red-400 text-white"
+                    : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+                )}
+              >
+                <ThumbsDown className="h-4 w-4" />
+                Beğenmediklerim
               </button>
               <button
                 onClick={() => setActiveTab("settings")}
@@ -684,22 +746,159 @@ export default function ProfilePage() {
             {/* Tab Content */}
             {activeTab === "comments" && (
               <div className="space-y-4">
-                <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center">
-                  <MessageSquare className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Henüz yorum yapmadınız
-                  </h3>
-                  <p className="text-gray-500 mb-4">
-                    Menülere yorum yaparak topluluğa katkıda bulunun!
-                  </p>
-                  <Link
-                    href="/"
-                    className="inline-flex items-center gap-2 rounded-full bg-green-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-green-600"
-                  >
-                    Menülere Göz At
-                    <ChevronRight className="h-4 w-4" />
-                  </Link>
-                </div>
+                {comments.length === 0 ? (
+                  <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center">
+                    <MessageSquare className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Henüz yorum yapmadınız
+                    </h3>
+                    <p className="text-gray-500 mb-4">
+                      Menülere yorum yaparak topluluğa katkıda bulunun!
+                    </p>
+                    <Link
+                      href="/"
+                      className="inline-flex items-center gap-2 rounded-full bg-green-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-green-600"
+                    >
+                      Menülere Göz At
+                      <ChevronRight className="h-4 w-4" />
+                    </Link>
+                  </div>
+                ) : (
+                  comments.map((comment) => {
+                    const cityName = cities.find((c) => c.id === comment.cityId)?.name || comment.cityId;
+                    const mealTypeText = comment.mealType === "breakfast" ? "Kahvaltı" : "Akşam Yemeği";
+                    const commentDate = new Date(comment.createdAt);
+                    const menuDate = new Date(comment.menuDate + "T00:00:00");
+                    
+                    return (
+                      <div
+                        key={comment.id}
+                        className="rounded-xl border border-gray-200 bg-white p-5 hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                              <span className="font-medium text-gray-700">{mealTypeText}</span>
+                              <span>•</span>
+                              <span>{menuDate.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })}</span>
+                              <span>•</span>
+                              <span className="flex items-center gap-1">
+                                <MapPin className="h-3 w-3" />
+                                {cityName}
+                              </span>
+                            </div>
+                            <p className="text-gray-900">{comment.text}</p>
+                          </div>
+                          <span className="text-xs text-gray-400 whitespace-nowrap">
+                            {commentDate.toLocaleDateString("tr-TR", { day: "numeric", month: "short" })}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+
+            {activeTab === "likes" && (
+              <div className="space-y-4">
+                {likes.length === 0 ? (
+                  <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center">
+                    <ThumbsUp className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Henüz yemek beğenmediniz
+                    </h3>
+                    <p className="text-gray-500 mb-4">
+                      Sevdiğiniz yemekleri beğenerek görüşlerinizi paylaşın!
+                    </p>
+                    <Link
+                      href="/"
+                      className="inline-flex items-center gap-2 rounded-full bg-green-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-green-600"
+                    >
+                      Menülere Göz At
+                      <ChevronRight className="h-4 w-4" />
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-6">
+                    <div className="grid gap-3">
+                      {likes.map((vote) => (
+                        <div
+                          key={vote.foodId}
+                          className="flex items-center justify-between p-4 rounded-xl bg-green-50 border border-green-100"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+                              <Utensils className="h-5 w-5 text-green-600" />
+                            </div>
+                            <span className="font-medium text-gray-900">{vote.foodName}</span>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm">
+                            <span className="flex items-center gap-1 text-green-600">
+                              <ThumbsUp className="h-4 w-4" />
+                              {vote.totalLikes}
+                            </span>
+                            <span className="flex items-center gap-1 text-gray-400">
+                              <ThumbsDown className="h-4 w-4" />
+                              {vote.totalDislikes}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "dislikes" && (
+              <div className="space-y-4">
+                {dislikes.length === 0 ? (
+                  <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center">
+                    <ThumbsDown className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Beğenmediğiniz yemek yok
+                    </h3>
+                    <p className="text-gray-500 mb-4">
+                      Sevmediğiniz yemekleri işaretleyerek görüşlerinizi paylaşın!
+                    </p>
+                    <Link
+                      href="/"
+                      className="inline-flex items-center gap-2 rounded-full bg-green-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-green-600"
+                    >
+                      Menülere Göz At
+                      <ChevronRight className="h-4 w-4" />
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-6">
+                    <div className="grid gap-3">
+                      {dislikes.map((vote) => (
+                        <div
+                          key={vote.foodId}
+                          className="flex items-center justify-between p-4 rounded-xl bg-red-50 border border-red-100"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                              <Utensils className="h-5 w-5 text-red-500" />
+                            </div>
+                            <span className="font-medium text-gray-900">{vote.foodName}</span>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm">
+                            <span className="flex items-center gap-1 text-gray-400">
+                              <ThumbsUp className="h-4 w-4" />
+                              {vote.totalLikes}
+                            </span>
+                            <span className="flex items-center gap-1 text-red-500">
+                              <ThumbsDown className="h-4 w-4" />
+                              {vote.totalDislikes}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

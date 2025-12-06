@@ -76,5 +76,10 @@ router.get('/me', authController.getMe);
 router.put('/profile', updateProfileValidation, authController.updateProfile);
 router.put('/password', changePasswordValidation, authController.changePassword);
 
+// Kullanıcı aktiviteleri
+router.get('/my-comments', authController.getMyComments);
+router.get('/my-votes', authController.getMyVotes);
+router.get('/my-stats', authController.getMyStats);
+
 module.exports = router;
 

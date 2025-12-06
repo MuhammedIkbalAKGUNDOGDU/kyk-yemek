@@ -330,3 +330,147 @@ exports.changePassword = async (req, res) => {
   }
 };
 
+// GET MY COMMENTS - Kullanıcının yorumlarını getir
+exports.getMyComments = async (req, res) => {
+  try {
+    const decoded = verifyToken(req);
+    if (!decoded) {
+      return res.status(401).json({ error: 'Yetkilendirme gerekli' });
+    }
+
+    const userId = decoded.userId;
+
+    const result = await db.query(
+      `SELECT c.id, c.text, c.created_at, 
+              m.id as menu_id, m.city_id, m.date, m.meal_type
+       FROM comments c
+       JOIN menus m ON c.menu_id = m.id
+       WHERE c.user_id = $1
+       ORDER BY c.created_at DESC
+       LIMIT 50`,
+      [userId]
+    );
+
+    res.json({
+      comments: result.rows.map(c => {
+        // Tarihi düzgün formatla
+        let dateStr;
+        if (c.date instanceof Date) {
+          const year = c.date.getFullYear();
+          const month = String(c.date.getMonth() + 1).padStart(2, '0');
+          const day = String(c.date.getDate()).padStart(2, '0');
+          dateStr = `${year}-${month}-${day}`;
+        } else {
+          dateStr = String(c.date).split('T')[0];
+        }
+        
+        return {
+          id: c.id,
+          text: c.text,
+          createdAt: c.created_at,
+          menuId: c.menu_id,
+          cityId: c.city_id,
+          menuDate: dateStr,
+          mealType: c.meal_type
+        };
+      })
+    });
+
+  } catch (error) {
+    console.error('GetMyComments error:', error);
+    res.status(500).json({ error: 'Yorumlar alınamadı' });
+  }
+};
+
+// GET MY VOTES - Kullanıcının beğenilerini getir
+exports.getMyVotes = async (req, res) => {
+  try {
+    const decoded = verifyToken(req);
+    if (!decoded) {
+      return res.status(401).json({ error: 'Yetkilendirme gerekli' });
+    }
+
+    const userId = decoded.userId;
+
+    const result = await db.query(
+      `SELECT v.vote_type, v.created_at, f.id as food_id, f.name as food_name, f.likes, f.dislikes
+       FROM user_food_votes v
+       JOIN foods f ON v.food_id = f.id
+       WHERE v.user_id = $1
+       ORDER BY v.created_at DESC`,
+      [userId]
+    );
+
+    const likes = result.rows.filter(v => v.vote_type === 'like').map(v => ({
+      foodId: v.food_id,
+      foodName: v.food_name,
+      totalLikes: v.likes,
+      totalDislikes: v.dislikes,
+      votedAt: v.created_at
+    }));
+
+    const dislikes = result.rows.filter(v => v.vote_type === 'dislike').map(v => ({
+      foodId: v.food_id,
+      foodName: v.food_name,
+      totalLikes: v.likes,
+      totalDislikes: v.dislikes,
+      votedAt: v.created_at
+    }));
+
+    res.json({
+      likes,
+      dislikes,
+      totalLikes: likes.length,
+      totalDislikes: dislikes.length
+    });
+
+  } catch (error) {
+    console.error('GetMyVotes error:', error);
+    res.status(500).json({ error: 'Beğeniler alınamadı' });
+  }
+};
+
+// GET MY STATS - Kullanıcı istatistikleri
+exports.getMyStats = async (req, res) => {
+  try {
+    const decoded = verifyToken(req);
+    if (!decoded) {
+      return res.status(401).json({ error: 'Yetkilendirme gerekli' });
+    }
+
+    const userId = decoded.userId;
+
+    // Yorum sayısı
+    const commentCount = await db.query(
+      'SELECT COUNT(*) FROM comments WHERE user_id = $1',
+      [userId]
+    );
+
+    // Beğeni sayıları
+    const voteCount = await db.query(
+      `SELECT vote_type, COUNT(*) 
+       FROM user_food_votes 
+       WHERE user_id = $1 
+       GROUP BY vote_type`,
+      [userId]
+    );
+
+    let likes = 0;
+    let dislikes = 0;
+    voteCount.rows.forEach(v => {
+      if (v.vote_type === 'like') likes = parseInt(v.count);
+      if (v.vote_type === 'dislike') dislikes = parseInt(v.count);
+    });
+
+    res.json({
+      commentCount: parseInt(commentCount.rows[0].count),
+      likeCount: likes,
+      dislikeCount: dislikes
+    });
+
+  } catch (error) {
+    console.error('GetMyStats error:', error);
+    res.status(500).json({ error: 'İstatistikler alınamadı' });
+  }
+};
+

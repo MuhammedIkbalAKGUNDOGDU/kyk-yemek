@@ -183,7 +183,51 @@ export const authAPI = {
       body: JSON.stringify(passwords),
     });
   },
+
+  // Kullanıcının yorumlarını getir
+  getMyComments: async (): Promise<{ comments: UserComment[] }> => {
+    return await fetchAPI('/auth/my-comments');
+  },
+
+  // Kullanıcının beğenilerini getir
+  getMyVotes: async (): Promise<{
+    likes: UserVote[];
+    dislikes: UserVote[];
+    totalLikes: number;
+    totalDislikes: number;
+  }> => {
+    return await fetchAPI('/auth/my-votes');
+  },
+
+  // Kullanıcı istatistikleri
+  getMyStats: async (): Promise<{
+    commentCount: number;
+    likeCount: number;
+    dislikeCount: number;
+  }> => {
+    return await fetchAPI('/auth/my-stats');
+  },
 };
+
+// Kullanıcı yorumu tipi
+export interface UserComment {
+  id: string;
+  text: string;
+  createdAt: string;
+  menuId: string;
+  cityId: string;
+  menuDate: string;
+  mealType: 'breakfast' | 'dinner';
+}
+
+// Kullanıcı beğeni tipi
+export interface UserVote {
+  foodId: string;
+  foodName: string;
+  totalLikes: number;
+  totalDislikes: number;
+  votedAt: string;
+}
 
 export default fetchAPI;
 
