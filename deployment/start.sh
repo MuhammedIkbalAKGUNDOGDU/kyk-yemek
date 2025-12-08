@@ -32,11 +32,11 @@ fi
 
 # Container'ları build et
 echo "🔨 Container'lar build ediliyor..."
-docker-compose build
+docker compose build
 
 # Container'ları başlat
 echo "▶️  Container'lar başlatılıyor..."
-docker-compose up -d
+docker compose up -d
 
 # PostgreSQL'in hazır olmasını bekle
 echo "⏳ PostgreSQL'in hazır olması bekleniyor..."
@@ -48,7 +48,7 @@ max_attempts=30
 attempt=0
 
 while [ $attempt -lt $max_attempts ]; do
-    if docker-compose exec -T postgres pg_isready -U postgres > /dev/null 2>&1; then
+    if docker compose exec -T postgres pg_isready -U postgres > /dev/null 2>&1; then
         echo "✅ PostgreSQL hazır!"
         break
     fi
@@ -59,7 +59,7 @@ done
 
 if [ $attempt -eq $max_attempts ]; then
     echo "❌ PostgreSQL başlatılamadı!"
-    docker-compose logs postgres
+    docker compose logs postgres
     exit 1
 fi
 
@@ -80,7 +80,7 @@ while [ $attempt -lt $max_attempts ]; do
 done
 
 if [ $attempt -eq $max_attempts ]; then
-    echo "⚠️  Backend henüz hazır değil. Logları kontrol edin: docker-compose logs backend"
+    echo "⚠️  Backend henüz hazır değil. Logları kontrol edin: docker compose logs backend"
 fi
 
 echo ""
@@ -92,8 +92,8 @@ echo "   - Backend API: http://localhost:5001/api"
 echo "   - Nginx: http://localhost:80"
 echo ""
 echo "📝 Logları görüntülemek için:"
-echo "   docker-compose logs -f"
+echo "   docker compose logs -f"
 echo ""
 echo "🛑 Durdurmak için:"
-echo "   docker-compose down"
+echo "   docker compose down"
 

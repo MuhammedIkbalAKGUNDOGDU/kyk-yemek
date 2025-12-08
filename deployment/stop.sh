@@ -4,7 +4,8 @@
 
 echo "🛑 Container'lar durduruluyor..."
 
-docker-compose down
+docker compose down
 
 echo "✅ Container'lar durduruldu!"
+
 

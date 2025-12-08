@@ -37,24 +37,24 @@ cp env.example .env
 
 **Manuel başlatma:**
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 3. Veritabanı Kontrolü
 
 ```bash
 # PostgreSQL loglarını kontrol et
-docker-compose logs postgres
+docker compose logs postgres
 
 # Veritabanına bağlan
-docker-compose exec postgres psql -U postgres -d kyk_yemek
+docker compose exec postgres psql -U postgres -d kyk_yemek
 ```
 
 ### 4. Admin Kullanıcısı Oluştur
 
 ```bash
 # Admin oluşturma script'ini çalıştır
-docker-compose exec postgres psql -U postgres -d kyk_yemek -f /docker-entrypoint-initdb.d/create_admin.sql
+docker compose exec postgres psql -U postgres -d kyk_yemek -f /docker-entrypoint-initdb.d/create_admin.sql
 
 # Veya API üzerinden
 curl -X POST http://localhost/api/admin/setup \
@@ -89,23 +89,23 @@ make shell-postgres # PostgreSQL'e bağlan
 
 ```bash
 # Container'ları başlat
-docker-compose up -d
+docker compose up -d
 
 # Container'ları durdur
-docker-compose down
+docker compose down
 
 # Logları görüntüle
-docker-compose logs -f
+docker compose logs -f
 
 # Container'ları yeniden build et
-docker-compose build --no-cache
-docker-compose up -d
+docker compose build --no-cache
+docker compose up -d
 
 # Veritabanı yedekleme
-docker-compose exec postgres pg_dump -U postgres kyk_yemek > backup.sql
+docker compose exec postgres pg_dump -U postgres kyk_yemek > backup.sql
 
 # Veritabanı geri yükleme
-docker-compose exec -T postgres psql -U postgres kyk_yemek < backup.sql
+docker compose exec -T postgres psql -U postgres kyk_yemek < backup.sql
 ```
 
 ### Script'ler ile
@@ -140,7 +140,7 @@ Production için SSL sertifikası eklemek için:
 
 1. Sertifikaları `nginx/ssl/` klasörüne koyun
 2. `nginx.conf` dosyasını güncelleyin (HTTPS server block ekleyin)
-3. `docker-compose.yml`'de volume mapping ekleyin
+3. `docker-compose.yml` dosyasında volume mapping ekleyin (docker compose komutları kullanılır)
 
 ## 📊 Health Checks
 
@@ -158,19 +158,19 @@ Production için SSL sertifikası eklemek için:
 ### Container'lar başlamıyor
 ```bash
 # Logları kontrol et
-docker-compose logs
+docker compose logs
 
 # Container durumunu kontrol et
-docker-compose ps
+docker compose ps
 ```
 
 ### Veritabanı bağlantı hatası
 ```bash
 # PostgreSQL'in hazır olmasını bekle
-docker-compose logs postgres
+docker compose logs postgres
 
 # Health check'i kontrol et
-docker-compose exec postgres pg_isready -U postgres
+docker compose exec postgres pg_isready -U postgres
 ```
 
 ### Port çakışması
@@ -200,7 +200,7 @@ docker volume ls
 
 ### Volume'u Sil (DİKKAT: Veri kaybına neden olur)
 ```bash
-docker-compose down -v
+docker compose down -v
 ```
 
 ## 🔐 Güvenlik
@@ -214,7 +214,7 @@ docker-compose down -v
 ## 📞 Destek
 
 Sorun yaşarsanız:
-- Logları kontrol edin: `docker-compose logs`
-- Container durumunu kontrol edin: `docker-compose ps`
+- Logları kontrol edin: `docker compose logs`
+- Container durumunu kontrol edin: `docker compose ps`
 - Health check'leri test edin
 
