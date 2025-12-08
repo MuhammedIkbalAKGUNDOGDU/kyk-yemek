@@ -81,6 +81,14 @@ done
 
 if [ $attempt -eq $max_attempts ]; then
     echo "⚠️  Backend henüz hazır değil. Logları kontrol edin: docker compose logs backend"
+else
+    # Admin oluşturma script'ini çalıştır
+    if [ -f "./create_admin.sh" ]; then
+        echo ""
+        echo "👤 Admin kullanıcısı oluşturuluyor..."
+        chmod +x ./create_admin.sh
+        ./create_admin.sh || echo "⚠️  Admin oluşturma script'i çalıştırılamadı (admin zaten mevcut olabilir)"
+    fi
 fi
 
 echo ""

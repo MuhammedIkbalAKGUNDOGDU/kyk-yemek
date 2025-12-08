@@ -151,7 +151,7 @@ Production için SSL sertifikası eklemek için:
 ## 🗄️ Veri Kalıcılığı
 
 - **PostgreSQL**: `postgres_data` volume'unda saklanır
-- **Uploads**: `backend/uploads/` klasöründe saklanır
+- **Menü Yüklemeleri**: `uploads_data` volume'unda saklanır (backend container içinde `/app/uploads/submissions`)
 
 ## 🐛 Sorun Giderme
 
@@ -200,7 +200,26 @@ docker volume ls
 
 ### Volume'u Sil (DİKKAT: Veri kaybına neden olur)
 ```bash
+# Tüm volume'ları sil
 docker compose down -v
+
+# Sadece uploads volume'unu sil
+docker volume rm deployment_uploads_data
+
+# Sadece postgres volume'unu sil
+docker volume rm deployment_postgres_data
+```
+
+### Uploads Volume'una Erişim
+```bash
+# Container içindeki uploads klasörünü görüntüle
+docker compose exec backend ls -la /app/uploads/submissions
+
+# Container içindeki bir dosyayı local'e kopyala
+docker compose cp backend:/app/uploads/submissions/menu-xxx.pdf ./menu-xxx.pdf
+
+# Local'den container'a dosya kopyala
+docker compose cp ./menu-xxx.pdf backend:/app/uploads/submissions/
 ```
 
 ## 🔐 Güvenlik
